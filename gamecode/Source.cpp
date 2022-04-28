@@ -1,16 +1,17 @@
 #include <SDL.h>
+#include <SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
 #define WEIGHT_w 1280
 #define HIGHT_w 720
+#define SPRITE_NUMBER 4
 
 enum KeyPressSurfaces
 {
-	KEY_PRESS_SURFACE_DEFAULT,
-	KEY_PRESS_SURFACE_UP,
 	KEY_PRESS_SURFACE_DOWN,
+	KEY_PRESS_SURFACE_UP,
 	KEY_PRESS_SURFACE_LEFT,
 	KEY_PRESS_SURFACE_RIGHT,
 	KEY_PRESS_SURFACE_TOTAL
@@ -18,10 +19,13 @@ enum KeyPressSurfaces
 
 SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
-SDL_Surface* gKeyPressSurfaces[KEY_PRESS_SURFACE_TOTAL];
-SDL_Surface* gCurSurface = NULL;
+SDL_Rect gSpriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
+SDL_Renderer* gRenderer = NULL;
+SDL_Texture* gSpriteTexture = NULL;
+SDL_Texture* gBackground = NULL;
 
-bool IinitScreen() {
+
+bool IinitScreen() {	
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		return false;
 	}
@@ -29,73 +33,68 @@ bool IinitScreen() {
 		gWindow = SDL_CreateWindow("TestWindow!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WEIGHT_w, HIGHT_w, SDL_WINDOW_SHOWN);
 		if (gWindow == NULL) return false;
 		else {
-			gScreenSurface = SDL_GetWindowSurface(gWindow);
+			gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+			if (gRenderer == NULL) {
+				printf("Render Error!\n");
+				return false;
+			}
+			else {
+				SDL_SetRenderDrawColor(gRenderer, 0xEF, 0x32, 0xFF, 0xFF);
+				int imgFlags = IMG_INIT_PNG;
+				if (!(IMG_Init(imgFlags) && imgFlags)) {
+					printf("IMG init error %s\n", IMG_GetError());
+					return false;
+				}
+				else {
+					gScreenSurface = SDL_GetWindowSurface(gWindow);
+				}
+			}
 		}
 	}
 	return true;
 }
 
-SDL_Surface* LoadSurface(const char* path) {
-	SDL_Surface* optimizedSurface = NULL;
-	SDL_Surface* loadedSurf = SDL_LoadBMP(path);
+SDL_Texture* loadTexture(const char* path) {
+	SDL_Texture* newTexture = NULL;
+	SDL_Surface* loadedSurf = IMG_Load(path);
 	if (loadedSurf == NULL) {
-		printf("Load Error %s", SDL_GetError());
+		printf("Load err");
 	}
 	else {
-		optimizedSurface = SDL_ConvertSurface(loadedSurf, gScreenSurface->format, 0);
-		if (optimizedSurface == NULL) {
-			printf("Optimization error!");
-		}
+		newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurf);
+		if (newTexture == NULL) printf("Texture creation error!\n");
 		SDL_FreeSurface(loadedSurf);
 	}
-	return optimizedSurface;
+	return(newTexture);
 }
+
 
 bool loadMedia()
 	{
 		//Loading success flag
 		bool success = true;
 
-		//Load default surface
-		gKeyPressSurfaces[KEY_PRESS_SURFACE_DEFAULT] = LoadSurface("press.bmp");
-		if (gKeyPressSurfaces[KEY_PRESS_SURFACE_DEFAULT] == NULL)
-		{
-			printf("Failed to load default image!\n");
+		gSpriteTexture = loadTexture("character.png");
+		if (gSpriteTexture == NULL) {
+			printf("Sprite texture loading fail!");
 			success = false;
 		}
 
-		//Load up surface
-		gKeyPressSurfaces[KEY_PRESS_SURFACE_UP] = LoadSurface("up.bmp");
-		if (gKeyPressSurfaces[KEY_PRESS_SURFACE_UP] == NULL)
-		{
-			printf("Failed to load up image!\n");
+		for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
+			for (int j = 0; j < SPRITE_NUMBER; ++j) {
+				gSpriteClips[i][j].w = 210;
+				gSpriteClips[i][j].h = 260;
+				if (j > 0) gSpriteClips[i][j].x = gSpriteClips[i][j].w + gSpriteClips[i][j - 1].x + 30;
+				else gSpriteClips[i][j].x = 0;
+				if (i > 0) gSpriteClips[i][j].y = gSpriteClips[i][j].h + gSpriteClips[i - 1][j].y + 25;
+				else gSpriteClips[i][j].y = 0;
+			}
+		}
+		gBackground = loadTexture("background.png");
+		if (gBackground == NULL) {
+			printf("bg fail\n");
 			success = false;
 		}
-
-		//Load down surface
-		gKeyPressSurfaces[KEY_PRESS_SURFACE_DOWN] = LoadSurface("down.bmp");
-		if (gKeyPressSurfaces[KEY_PRESS_SURFACE_DOWN] == NULL)
-		{
-			printf("Failed to load down image!\n");
-			success = false;
-		}
-
-		//Load left surface
-		gKeyPressSurfaces[KEY_PRESS_SURFACE_LEFT] = LoadSurface("left.bmp");
-		if (gKeyPressSurfaces[KEY_PRESS_SURFACE_LEFT] == NULL)
-		{
-			printf("Failed to load left image!\n");
-			success = false;
-		}
-
-		//Load right surface
-		gKeyPressSurfaces[KEY_PRESS_SURFACE_RIGHT] = LoadSurface("right.bmp");
-		if (gKeyPressSurfaces[KEY_PRESS_SURFACE_RIGHT] == NULL)
-		{
-			printf("Failed to load right image!\n");
-			success = false;
-		}
-
 		return success;
 }
 
@@ -103,12 +102,13 @@ bool loadMedia()
 void DestroyAll() {
 	SDL_FreeSurface(gScreenSurface);
 	gScreenSurface = NULL;
-	for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
-		SDL_FreeSurface(gKeyPressSurfaces[i]);
-		gKeyPressSurfaces[i] = NULL; 
-	}
+	SDL_DestroyTexture(gSpriteTexture);
+	SDL_DestroyTexture(gBackground);
+	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);
 	gWindow = NULL;
+	gRenderer = NULL;
+	IMG_Quit();
 	SDL_Quit();
 }
 
@@ -122,11 +122,11 @@ int main(int argc, char* args[]) {
 		bool quit = false;
 		SDL_Event event;
 		SDL_Rect stretchRect;
-		stretchRect.x = 0;
-		stretchRect.y = 0;
+		stretchRect.x = 300;
+		stretchRect.y = 180;
 		stretchRect.w = 60;
 		stretchRect.h = 85;
-		gCurSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_DEFAULT];
+		int dSp = 0; int rSp = 0; int lSp = 0; int uSp = 0;
 		while (!quit) {
 			while (SDL_PollEvent(&event) != 0) {
 				if (event.type == SDL_QUIT) {
@@ -134,59 +134,74 @@ int main(int argc, char* args[]) {
 				}
 				else if (event.type == SDL_KEYDOWN) {
 					switch (event.key.keysym.sym) {
-					case SDLK_UP:
-						gCurSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_UP];
+					case SDLK_w:
 						if (stretchRect.y > 0) {
-							stretchRect.y-=10;
+							stretchRect.y-=5;
 							printf("Moving up\n");
 						}
 						else {
 							printf("There is a wall above\n");
 						}
+						dSp = 0; rSp = 0; lSp = 0;
+						SDL_RenderClear(gRenderer);
+						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
+						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_UP][((uSp++)/4) % 4], &stretchRect);
 						break;
 
-					case SDLK_DOWN:
-						gCurSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_DOWN];
+					case SDLK_s:
 						if (stretchRect.y < HIGHT_w-stretchRect.h) {
-							stretchRect.y+=10;
+							stretchRect.y+=5;
 							printf("Moving down\n");
 						}
 						else {
 							printf("There is a wall down\n");
 						}
+						uSp = 0; rSp = 0; lSp = 0;
+						SDL_RenderClear(gRenderer);
+						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
+						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_DOWN][((dSp++)/4) % 4], &stretchRect);
 						break;
 
-					case SDLK_LEFT:
-						gCurSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_LEFT];
+					case SDLK_a:
 						if (stretchRect.x > 0) {
-							stretchRect.x-=10;
+							stretchRect.x-=5;
 							printf("Moving left\n");
 						}
 						else {
 							printf("There is a wall at the left\n");
 						}
+						uSp = 0; rSp = 0; dSp = 0;
+						SDL_RenderClear(gRenderer);
+						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
+						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_LEFT][((lSp++)/4) % 4], &stretchRect);
 						break;
 
-					case SDLK_RIGHT:
-						gCurSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_RIGHT];
+					case SDLK_d:
 						if (stretchRect.x < WEIGHT_w-stretchRect.w) {
-							stretchRect.x+=10;
+							stretchRect.x+=5;
 							printf("Moving right\n");
 						}
 						else {
 							printf("There is a wall at the right\n");
 						}
+						uSp = 0; dSp = 0; lSp = 0;
+						SDL_RenderClear(gRenderer);
+						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
+						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_RIGHT][((rSp++)/4) % 4], &stretchRect);
 						break;
 
 					default:
-						gCurSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_DEFAULT];
+						SDL_RenderClear(gRenderer);
+						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
+						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_DOWN][0], &stretchRect);
 						break;
 					}
 				}
-				SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
-				SDL_BlitScaled(gCurSurface, NULL, gScreenSurface, &stretchRect);
-				SDL_UpdateWindowSurface(gWindow);
-				
+				//Render texture to screen
+				//SDL_RenderCopy(gRenderer, gTexture, NULL, &stretchRect);
+
+				//Update screen
+				SDL_RenderPresent(gRenderer);
 			}
 		}
 	}
