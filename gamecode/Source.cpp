@@ -7,6 +7,7 @@
 #define WEIGHT_w 1280
 #define HIGHT_w 720
 #define SPRITE_NUMBER 4
+#define VELOCITY 3
 
 enum KeyPressSurfaces
 {
@@ -65,7 +66,7 @@ SDL_Texture* loadTexture(const char* path) {
 		if (newTexture == NULL) printf("Texture creation error!\n");
 		SDL_FreeSurface(loadedSurf);
 	}
-	return(newTexture);
+	return newTexture;
 }
 
 
@@ -90,6 +91,7 @@ bool loadMedia()
 				else gSpriteClips[i][j].y = 0;
 			}
 		}
+
 		gBackground = loadTexture("background.png");
 		if (gBackground == NULL) {
 			printf("bg fail\n");
@@ -119,6 +121,13 @@ int main(int argc, char* args[]) {
 	}
 	else if (loadMedia()) 
 	{
+		SDL_Texture* rockTexture = loadTexture("rock.png");
+		if (rockTexture == NULL) printf("Rock!!!\n");
+		SDL_Rect rockPos;
+		rockPos.x = 800;
+		rockPos.y = 450;
+		rockPos.w = 100;
+		rockPos.h = 130;
 		bool quit = false;
 		SDL_Event event;
 		SDL_Rect stretchRect;
@@ -127,80 +136,73 @@ int main(int argc, char* args[]) {
 		stretchRect.w = 60;
 		stretchRect.h = 85;
 		int dSp = 0; int rSp = 0; int lSp = 0; int uSp = 0;
+		int mouseX = 0; int mouseY = 0;
+		size_t lastEvent[2] = {0,0};
+
 		while (!quit) {
 			while (SDL_PollEvent(&event) != 0) {
 				if (event.type == SDL_QUIT) {
 					quit = true;
 				}
-				else if (event.type == SDL_KEYDOWN) {
-					switch (event.key.keysym.sym) {
-					case SDLK_w:
-						if (stretchRect.y > 0) {
-							stretchRect.y-=5;
-							printf("Moving up\n");
+				else if (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+					SDL_GetMouseState(&mouseX, &mouseY);
+					if ((mouseX >= (stretchRect.x)) && (mouseX <= (stretchRect.x + stretchRect.w)) &&
+						(mouseY >= (stretchRect.y)) && (mouseY <= (stretchRect.y + stretchRect.h)))
+					{
+						if (event.button.state == SDL_PRESSED) {
+							printf("This is me!\n");
 						}
-						else {
-							printf("There is a wall above\n");
-						}
-						dSp = 0; rSp = 0; lSp = 0;
-						SDL_RenderClear(gRenderer);
-						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
-						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_UP][((uSp++)/4) % 4], &stretchRect);
-						break;
-
-					case SDLK_s:
-						if (stretchRect.y < HIGHT_w-stretchRect.h) {
-							stretchRect.y+=5;
-							printf("Moving down\n");
-						}
-						else {
-							printf("There is a wall down\n");
-						}
-						uSp = 0; rSp = 0; lSp = 0;
-						SDL_RenderClear(gRenderer);
-						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
-						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_DOWN][((dSp++)/4) % 4], &stretchRect);
-						break;
-
-					case SDLK_a:
-						if (stretchRect.x > 0) {
-							stretchRect.x-=5;
-							printf("Moving left\n");
-						}
-						else {
-							printf("There is a wall at the left\n");
-						}
-						uSp = 0; rSp = 0; dSp = 0;
-						SDL_RenderClear(gRenderer);
-						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
-						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_LEFT][((lSp++)/4) % 4], &stretchRect);
-						break;
-
-					case SDLK_d:
-						if (stretchRect.x < WEIGHT_w-stretchRect.w) {
-							stretchRect.x+=5;
-							printf("Moving right\n");
-						}
-						else {
-							printf("There is a wall at the right\n");
-						}
-						uSp = 0; dSp = 0; lSp = 0;
-						SDL_RenderClear(gRenderer);
-						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
-						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_RIGHT][((rSp++)/4) % 4], &stretchRect);
-						break;
-
-					default:
-						SDL_RenderClear(gRenderer);
-						SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
-						SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[KEY_PRESS_SURFACE_DOWN][0], &stretchRect);
-						break;
 					}
 				}
-				//Render texture to screen
-				//SDL_RenderCopy(gRenderer, gTexture, NULL, &stretchRect);
-
-				//Update screen
+				const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
+				if (currentKeyStates[SDL_SCANCODE_W]) {
+					if (stretchRect.y > 0) {
+						stretchRect.y -= VELOCITY;
+						printf("Moving up\n");
+					}
+					else {
+						printf("There is a wall above\n");
+					}
+					dSp = 0; rSp = 0; lSp = 0;
+					lastEvent[0] = KEY_PRESS_SURFACE_UP; lastEvent[1] = uSp++;
+				}
+				if (currentKeyStates[SDL_SCANCODE_S]) {
+					if (stretchRect.y < HIGHT_w - stretchRect.h) {
+						stretchRect.y += VELOCITY;
+						printf("Moving down\n");
+					}
+					else {
+						printf("There is a wall down\n");
+					}
+					uSp = 0; rSp = 0; lSp = 0;
+					lastEvent[0] = KEY_PRESS_SURFACE_DOWN; lastEvent[1] = dSp++;
+				}
+				if (currentKeyStates[SDL_SCANCODE_A]) {
+					if (stretchRect.x > 0) {
+						stretchRect.x -= VELOCITY;
+						printf("Moving left\n");
+					}
+					else {
+						printf("There is a wall at the left\n");
+					}
+					uSp = 0; rSp = 0; dSp = 0;
+					lastEvent[0] = KEY_PRESS_SURFACE_LEFT; lastEvent[1] = lSp++;
+				}
+				if (currentKeyStates[SDL_SCANCODE_D]) {
+					if (stretchRect.x < WEIGHT_w - stretchRect.w) {
+						stretchRect.x += VELOCITY;
+						printf("Moving right\n");
+					}
+					else {
+						printf("There is a wall at the right\n");
+					}
+					uSp = 0; dSp = 0; lSp = 0;
+					lastEvent[0] = KEY_PRESS_SURFACE_RIGHT; lastEvent[1] = rSp++;
+				}
+				SDL_RenderClear(gRenderer);
+				SDL_RenderCopy(gRenderer, gBackground, NULL, NULL);
+				SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], &stretchRect);
+				SDL_RenderCopy(gRenderer, rockTexture, NULL, &rockPos);
 				SDL_RenderPresent(gRenderer);
 			}
 		}
