@@ -1,11 +1,6 @@
 #include "gameEnv.h"
 #include "gameObjects.h"
 
-#define SPRITE_NUMBER 4
-#define WIDTH_w 1280
-#define HEIGHT_w 720
-#define BG_WIDTH 3800
-#define BG_HEIGHT 2170
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
@@ -57,9 +52,10 @@ int main(int argc, char* args[]) {
 	else if (loadMedia())
 	{
 		SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
-		gameObj rockUp; gameObj rockDown;
+		gameObj rockUp; gameObj rockDown; gameObj sampleRock;
 		initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 });
 		initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 });
+		initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 });
 		if (rockUp.texture == NULL) printf("Rock!!!\n");
 
 		character Surv;
@@ -71,19 +67,6 @@ int main(int argc, char* args[]) {
 				Surv.spriteClips[i][j] = gSpriteClips[i][j];
 			}
 		}
-		/*Surv.camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
-		Surv.posRect = { WIDTH_w / 2, HEIGHT_w / 2, 60, 85 };
-		Surv.hitBox = { Surv.posRect.x + 10, Surv.posRect.y + Surv.posRect.h - 25, 40, 25 };
-		Surv.texture = gSpriteTexture;*/
-
-		/*SDL_Rect stretchRect;
-		stretchRect.x = WIDTH_w / 2; stretchRect.y = HEIGHT_w / 2;
-		stretchRect.w = 60; stretchRect.h = 85;*/
-		/*SDL_Rect hitBox;
-		hitBox.x = stretchRect.x + 10; hitBox.y = stretchRect.y + stretchRect.h - 25;
-		hitBox.w = 40; hitBox.h = 25;*/
-
-		//int dSp = 0; int rSp = 0; int lSp = 0; int uSp = 0;
 		//int mouseX = 0; int mouseY = 0;
 		size_t lastEvent[2] = { 0,0 };
 		bool quit = false;
@@ -106,10 +89,11 @@ int main(int argc, char* args[]) {
 				}*/
 			}
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-			int yShift = 0; int xShift = 0;
-			HandleMovement(&Surv, currentKeyStates, HEIGHT_w, WIDTH_w, BG_HEIGHT, BG_WIDTH, &yShift, &xShift, lastEvent);
-			gameObj* saveObj[2] = { &rockUp, &rockDown };
-			SaveObjPosition(saveObj, 2, yShift, xShift);
+			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
+			HandleMovement(&Surv, currentKeyStates, lastEvent, saveObj, 3);
+			printf("rock pos: y = %d x = %d\n", rockDown.hitBox.y, rockDown.hitBox.x);
+			printf("character pos: y = %d x = %d\n", Surv.camera->y, Surv.camera->x);
+			//SaveObjPosition(saveObj, 2, yShift, xShift);
 			/*if (currentKeyStates[SDL_SCANCODE_W]) {
 				if (camera.y > 0 && (stretchRect.y == HEIGHT_w / 2)) {
 					camera.y -= VELOCITY;
@@ -217,7 +201,10 @@ int main(int argc, char* args[]) {
 			SDL_RenderClear(gRenderer);
 			SDL_RenderCopy(gRenderer, gBackground, Surv.camera, NULL);
 			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, &rockDown.posRect);
+			SDL_RenderCopy(gRenderer, sampleRock.texture, &sampleRock.srcRect, &sampleRock.posRect);
 			SDL_RenderCopy(gRenderer, gSpriteTexture, &Surv.spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Surv.posRect);
+			SDL_RenderDrawRect(gRenderer, Surv.hitBox);
+			SDL_RenderDrawRect(gRenderer, &sampleRock.hitBox);
 			SDL_RenderCopy(gRenderer, rockUp.texture, &rockUp.srcRect, &rockUp.posRect);
 			SDL_RenderPresent(gRenderer);
 		}

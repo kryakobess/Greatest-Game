@@ -109,77 +109,87 @@ bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect hitBox, 
 	return true;
 }
 
-void SaveObjPosition(gameObj* freezedObjs[], int objCount, int yShift, int xShift) {
+bool CheckAllCollisions(character* c, gameObj* objs[], int objCount) {
+	for (int i = 0; i < objCount; ++i) {
+		if (isCollided((*c->hitBox), objs[i]->hitBox)) return true;
+	}
+	return false;
+}
+
+void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift) {
 	for (int i = 0; i < objCount; i++) {
-		freezedObjs[i]->posRect.y += yShift;
-		freezedObjs[i]->posRect.x += xShift;
-		freezedObjs[i]->hitBox.y += yShift;
-		freezedObjs[i]->hitBox.x += xShift;
+		objs[i]->posRect.y -= yShift;
+		objs[i]->posRect.x -= xShift;
+		objs[i]->hitBox.y -= yShift;
+		objs[i]->hitBox.x -= xShift;
 	}
 }
 
-void HandleMovement(character* c, const Uint8* move, int HEIGHT_w, int WIDTH_w, int BG_HEIGHT,  int BG_WIDTH, int* yShift, int* xShift, size_t lastEvent[2]) {
-	int dSp = 0; int rSp = 0; int lSp = 0; int uSp = 0;
+void HandleMovement(character* c, const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount) {
+	int yShift = 0; int xShift = 0;
+	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
 	if (currentKeyStates[SDL_SCANCODE_W]) {
 		if (c->camera->y > 0 && (c->posRect->y == HEIGHT_w / 2)) {
 			c->camera->y -= VELOCITY;
-			*yShift += VELOCITY;
+			yShift -= VELOCITY;
 		}
 		else if (c->posRect->y > 0) {
 			c->posRect->y -= VELOCITY;
 			c->hitBox->y -= VELOCITY;
+			yPosShift -= VELOCITY;
 		}
-		dSp = 0; rSp = 0; lSp = 0;
 		lastEvent[0] = KEY_PRESS_SURFACE_UP; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_S]) {
 		if (c->camera->y < BG_HEIGHT && (c->posRect->y == HEIGHT_w / 2)) {
 			c->camera->y += VELOCITY;
-			*yShift -= VELOCITY;
+			yShift += VELOCITY;
 		}
 		else if (c->posRect->y < HEIGHT_w - c->posRect->h) {
 			c->posRect->y += VELOCITY;
 			c->hitBox->y += VELOCITY;
+			yPosShift += VELOCITY;
 		}
-		uSp = 0; rSp = 0; lSp = 0;
 		lastEvent[0] = KEY_PRESS_SURFACE_DOWN; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
 		if (c->camera->x > 0 && c->posRect->x == WIDTH_w / 2) {
 			c->camera->x -= VELOCITY;
-			*xShift += VELOCITY;
+			xShift -= VELOCITY;
 		}
 		else if (c->posRect->x > 0) {
 			c->posRect->x -= VELOCITY;
 			c->hitBox->x -= VELOCITY;
+			xPosShift -= VELOCITY;
 		}
-		uSp = 0; rSp = 0; dSp = 0;
 		lastEvent[0] = KEY_PRESS_SURFACE_LEFT; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_D]) {
 		if (c->camera->x < BG_WIDTH && c->posRect->x == WIDTH_w / 2) {
 			c->camera->x += VELOCITY;
-			*xShift -= VELOCITY;
+			xShift += VELOCITY;
 		}
 		else if (c->posRect->x < WIDTH_w - c->posRect->w) {
 			c->posRect->x += VELOCITY;
 			c->hitBox->x += VELOCITY;
+			xPosShift += VELOCITY;
 		}
-		uSp = 0; dSp = 0; lSp = 0;
 		lastEvent[0] = KEY_PRESS_SURFACE_RIGHT; lastEvent[1]++;
 	}
-	//SDL_RenderCopy(gRenderer, gSpriteTexture, &gSpriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], &c->posRect);
+	SaveObjPosition(objs, objCount, yShift, xShift);
+	if (CheckAllCollisions(c, objs, objCount)) {
+		if (c->posRect->x != WIDTH_w / 2 || c->posRect->y != HEIGHT_w / 2) {
+			c->posRect->x -= xPosShift;
+			c->hitBox->x -= xPosShift;
+			c->posRect->y -= yPosShift;
+			c->hitBox->y -= yPosShift;
+		}
+		if ((c->posRect->x == WIDTH_w / 2 || c->posRect->y == HEIGHT_w / 2)) {
+			c->camera->x -= xShift;
+			c->camera->y -= yShift;
+			SaveObjPosition(objs, objCount, -yShift, -xShift);
+		}
+	}
 }
 
-
-//void Move(character* c, float velocity, gameObj* obj[], int maxHeight, int maxWidth)
-//{
-//}
-//
-//void MoveCamera(character* camera, float velocity, int maxBgHeight, int maxBgWidth) {
-//	c->camera.x += c->curVelX;
-//	if (c->camera.y < 0 || (c->posRect.y != maxBgHeight / 2 || c->camera.y >= BG_HEIGHT) {
-//		c->camera.y
-//	}
-//}

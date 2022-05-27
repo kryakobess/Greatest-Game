@@ -1,15 +1,14 @@
 #ifndef anObject
 #define anObject
 
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_mixer.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include "GameEnv.h"
 
 #define SPRITE_NUMBER 4
-#define VELOCITY 3
+#define VELOCITY 8
+
+const enum CollisionStatus {
+
+};
 
 const enum KeyPressSurfaces
 {
@@ -21,17 +20,15 @@ const enum KeyPressSurfaces
 };
 
 typedef struct gameObj {
-	SDL_Rect posRect;
+	SDL_Rect* posRect;
 	SDL_Rect srcRect;
-	SDL_Rect hitBox;
+	SDL_Rect** hitBoxes;
 	SDL_Texture* texture;
 }gameObj;
 
 typedef struct character {
-	SDL_Rect* posRect;
+	gameObj model;
 	SDL_Rect spriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
-	SDL_Rect* hitBox;
-	SDL_Texture* texture;
 	SDL_Rect* camera;
 	float curVelY, curVelX;
 }character;
@@ -56,8 +53,8 @@ void RenderObject(gameObj* obj, SDL_Renderer* renderer);
 bool isCollided(SDL_Rect a, SDL_Rect b);
 
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect hitBox, SDL_Rect camera);
-void HandleMovement(character* c, const Uint8* move,  int HEIGHT_w, int WIDTH_w, int BG_HEIGHT, int BG_WIDTH, int* yShift, int* xShift, size_t lastEvent[2]);
-void MoveCamera(character* camera, float velocity, int maxBgHeight, int maxBgWidth);
-void SaveObjPosition(gameObj* freezedObjs[], int objCount, int yShift, int xShift);
+void HandleMovement(character* c, const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount);
+void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift);
+bool CheckAllCollisions(character* c, gameObj* objs[], int objCount);
 
 #endif // !anObject

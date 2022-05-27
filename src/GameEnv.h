@@ -1,7 +1,18 @@
 #ifndef anEnv
 #define anEnv
 
-#include "gameObjects.h"
+#define WIDTH_w 1280
+#define HEIGHT_w 720
+#define BG_WIDTH 3800
+#define BG_HEIGHT 2170
+
+
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_mixer.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 //Initializing game screen
 bool IinitScreen(SDL_Window** gWindow, SDL_Renderer** gRenderer, Mix_Music** gMusic, const int winW, const int winH);
