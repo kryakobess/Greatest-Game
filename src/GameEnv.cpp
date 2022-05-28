@@ -55,3 +55,58 @@ void DestroyAll(SDL_Window** gWindow, SDL_Renderer** gRenderer, Mix_Music** gMus
 	IMG_Quit();
 	SDL_Quit();
 }
+
+void Timer_Init(Timer* t) {
+	t->startTicks = 0;
+	t->pausedTicks = 0;
+	t->paused = false;
+	t->started = false;
+}
+
+void Timer_Start(Timer* t) {
+	t->started = true;
+	t->paused = false;
+	t->startTicks = SDL_GetTicks();
+	t->pausedTicks = 0;
+}
+
+void Timer_Stop(Timer* t) {
+	t->started = false;
+	t->paused = false;
+	t->startTicks = 0;
+	t->pausedTicks = 0;
+}
+
+void Timer_Pause(Timer* t) {
+	if (t->started && !t->paused)
+	{
+		t->paused = true;
+		t->pausedTicks = SDL_GetTicks() - t->startTicks;
+		t->startTicks = 0;
+	}
+}
+
+void Timer_Unpause(Timer* t) {
+	if (t->started && t->paused)
+	{
+		t->paused = false;
+		t->startTicks = SDL_GetTicks() - t->pausedTicks;
+		t->pausedTicks = 0;
+	}
+}
+
+Uint32 Timer_GetTicks(Timer* t) {
+	Uint32 time = 0;
+	if (t->started)
+	{
+		if (t->paused)
+		{
+			time = t->pausedTicks;
+		}
+		else
+		{
+			time = SDL_GetTicks() - t->startTicks;
+		}
+	}
+	return time;
+}

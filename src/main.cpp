@@ -91,8 +91,6 @@ int main(int argc, char* args[]) {
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock};
 			HandleMovement(&Surv, currentKeyStates, lastEvent, saveObj, 3);
-			//printf("rock pos: y = %d x = %d\n", rockDown.collisionBox->y, rockDown.hitBox.x);
-			//printf("character pos: y = %d x = %d\n", Surv.camera->y, Surv.camera->x);
 			SDL_RenderClear(gRenderer);
 			SDL_RenderCopy(gRenderer, gBackground, Surv.camera, NULL);
 			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, rockDown.posRect);

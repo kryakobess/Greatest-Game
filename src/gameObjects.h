@@ -29,35 +29,31 @@ typedef struct gameObj {
 	SDL_Texture* texture;
 }gameObj;
 
+typedef struct gameItem {
+	gameObj itemModel;
+	void(*ItemFunc)(void*);
+	Timer delay;
+}gameItem;
+
 typedef struct character {
 	gameObj model;
+	gameItem Item;
 	SDL_Rect* hitBox;
 	SDL_Rect spriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
 	SDL_Rect* camera;
 }character;
 
-typedef struct Timer {
-	Uint32 startTicks;
-	Uint32 pausedTicks;
-	bool paused;
-	bool started;
-}Timer;
-
-void Timer_Init(Timer* t);
-void Timer_Start(Timer* t);
-void Timer_Stop(Timer* t);
-void Timer_Pause(Timer* t);
-void Timer_Unpause(Timer* t);
-Uint32 Timer_GetTicks(Timer* t);
 
 bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox);
 void FreeObj(gameObj* obj);
 void RenderObject(gameObj* obj, SDL_Renderer* renderer);
 bool isCollided(SDL_Rect a, SDL_Rect b);
 
+bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(void*));
+
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera);
 void HandleMovement(character* c, const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount);
 void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift);
-bool CheckAllCollisions(character* c, gameObj* objs[], int objCount);
+bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag);
 
 #endif // !anObject

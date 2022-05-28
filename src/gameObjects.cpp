@@ -14,68 +14,33 @@ bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Re
 	return true;
 }
 
+bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(void*)) {
+	if (!initGameObject(&i->itemModel, t, posCfg, srcCfg, cBox)) return false;
+	i->ItemFunc = func;
+	Timer_Init(&i->delay);
+	return true;
+}
+
+bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera) {
+	c->hitBox = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+	c->camera = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+	if (!initGameObject(&c->model, t, pos, {}, cBox)) return false;
+	*c->hitBox = hitBox;
+	*c->camera = camera;
+	return true;
+}
+
 void FreeObj(gameObj* obj) {
 	SDL_DestroyTexture(obj->texture);
 	obj->texture = NULL;
+	free(obj->posRect);
+	obj->posRect = NULL;
+	free(obj->collisionBox);
+	obj->collisionBox = NULL;
 }
 
 void RenderObject(gameObj* obj, SDL_Renderer* renderer) {
 	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), (obj->posRect));
-}
-
-void Timer_Init(Timer* t) {
-	t->startTicks = 0;
-	t->pausedTicks = 0;
-	t->paused = false;
-	t->started = false;
-}
-
-void Timer_Start(Timer* t) {
-	t->started = true;
-	t->paused = false;
-	t->startTicks = SDL_GetTicks();
-	t->pausedTicks = 0;
-}
-
-void Timer_Stop(Timer* t) {
-	t->started = false;
-	t->paused = false;
-	t->startTicks = 0;
-	t->pausedTicks = 0;
-}
-
-void Timer_Pause(Timer* t) {
-	if (t->started && !t->paused)
-	{
-		t->paused = true;
-		t->pausedTicks = SDL_GetTicks() - t->startTicks;
-		t->startTicks = 0;
-	}
-}
-
-void Timer_Unpause(Timer* t) {
-	if (t->started && t->paused)
-	{
-		t->paused = false;
-		t->startTicks = SDL_GetTicks() - t->pausedTicks;
-		t->pausedTicks = 0;
-	}
-}
-
-Uint32 Timer_GetTicks(Timer* t) {
-	Uint32 time = 0;
-	if (t->started)
-	{
-		if (t->paused)
-		{
-			time = t->pausedTicks;
-		}
-		else
-		{
-			time = SDL_GetTicks() - t->startTicks;
-		}
-	}
-	return time;
 }
 
 bool isCollided(SDL_Rect a, SDL_Rect b)
@@ -94,15 +59,6 @@ bool isCollided(SDL_Rect a, SDL_Rect b)
 	if (topA >= bottomB) return false;
 	if (rightA <= leftB) return false;
 	if (leftA >= rightB) return false;
-	return true;
-}
-
-bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera) {
-	c->hitBox = (SDL_Rect*)malloc(sizeof(SDL_Rect));
-	c->camera = (SDL_Rect*)malloc(sizeof(SDL_Rect));
-	initGameObject(&c->model, t, pos, {}, cBox);
-	*c->hitBox = hitBox;
-	*c->camera = camera;
 	return true;
 }
 
