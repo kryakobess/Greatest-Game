@@ -14,14 +14,16 @@ bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Re
 	return true;
 }
 
-bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(void*)) {
+bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(void*)) 
+{
 	if (!initGameObject(&i->itemModel, t, posCfg, srcCfg, cBox)) return false;
 	i->ItemFunc = func;
 	Timer_Init(&i->delay);
 	return true;
 }
 
-bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera) {
+bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera) 
+{
 	c->hitBox = (SDL_Rect*)malloc(sizeof(SDL_Rect));
 	c->camera = (SDL_Rect*)malloc(sizeof(SDL_Rect));
 	if (!initGameObject(&c->model, t, pos, {}, cBox)) return false;
@@ -30,7 +32,8 @@ bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SD
 	return true;
 }
 
-void FreeObj(gameObj* obj) {
+void FreeObj(gameObj* obj)
+{
 	SDL_DestroyTexture(obj->texture);
 	obj->texture = NULL;
 	free(obj->posRect);
@@ -39,7 +42,8 @@ void FreeObj(gameObj* obj) {
 	obj->collisionBox = NULL;
 }
 
-void RenderObject(gameObj* obj, SDL_Renderer* renderer) {
+void RenderObject(gameObj* obj, SDL_Renderer* renderer)
+{
 	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), (obj->posRect));
 }
 
@@ -62,7 +66,8 @@ bool isCollided(SDL_Rect a, SDL_Rect b)
 	return true;
 }
 
-bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag) {
+bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag) 
+{
 	for (int i = 0; i < objCount; ++i) {
 		if (flag == CollisionModel && isCollided((*c->model.collisionBox), *objs[i]->collisionBox)) return true;
 		else if (flag == weaponRange && isCollided(*c->hitBox, *objs[i]->collisionBox)) return true;
@@ -70,7 +75,8 @@ bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag) {
 	return false;
 }
 
-void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift) {
+void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift) 
+{
 	for (int i = 0; i < objCount; i++) {
 		objs[i]->posRect->y -= yShift;
 		objs[i]->posRect->x -= xShift;
@@ -79,7 +85,8 @@ void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift) {
 	}
 }
 
-void HandleMovement(character* c, const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount) {
+void HandleMovement(character* c, const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount) 
+{
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
