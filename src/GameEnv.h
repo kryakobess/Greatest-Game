@@ -5,6 +5,7 @@
 #define HEIGHT_w 720
 #define BG_WIDTH 3800
 #define BG_HEIGHT 2170
+#define LocalPlayer 0
 
 
 #include <SDL.h>

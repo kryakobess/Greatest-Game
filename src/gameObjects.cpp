@@ -14,12 +14,30 @@ bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Re
 	return true;
 }
 
-bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(void*)) 
+bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(gameItem*, bool, SDL_Rect))
 {
 	if (!initGameObject(&i->itemModel, t, posCfg, srcCfg, cBox)) return false;
 	i->ItemFunc = func;
 	Timer_Init(&i->delay);
+	Timer_Start(&i->delay);
+	i->isActive = false;
 	return true;
+}
+
+void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect posRect) {
+	if (trap->isActive && Timer_GetTicks(&trap->delay) <= 20000) {
+		trap->itemModel.collisionBox = trap->itemModel.posRect;
+	}
+	else if (keyFlag && Timer_GetTicks(&trap->delay) >= 40000) {
+		trap->isActive = true;
+		Timer_Init(&trap->delay);
+	}
+	else {
+		trap->isActive = false;
+		trap->itemModel.collisionBox = {};
+		trap->itemModel.posRect->x = posRect.x;
+		trap->itemModel.posRect->y = posRect.y;
+	}
 }
 
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera) 
@@ -85,63 +103,65 @@ void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift)
 	}
 }
 
-void HandleMovement(character* c, const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount) 
+void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPosShift, double k) {
+	c->model.posRect->x += xPosShift * k; c->model.posRect->y += yPosShift * k;
+	c->hitBox->x += xPosShift * k; c->hitBox->y += yPosShift * k;
+	c->model.collisionBox->x += xPosShift * k; c->model.collisionBox->y += yPosShift * k;
+	c->camera->x += xShift * k; c->camera->y += yShift * k;
+}
+
+void HandleMovement(character** c, const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount, int playersCount) 
 {
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
+	int moveCoef = 1;
 	const Uint8* currentKeyStates = move;
 	if (currentKeyStates[SDL_SCANCODE_W]) {
-		if (c->camera->y > 0 && (c->model.posRect->y == HEIGHT_w / 2)) {
-			yShift -= VELOCITY;
-		}
-		else if (c->model.posRect->y > 0) {
-			yPosShift -= VELOCITY;
-		}
+		if (c[LocalPlayer]->camera->y > 0 && (c[LocalPlayer]->model.posRect->y == HEIGHT_w / 2)) yShift -= VELOCITY;
+		else if (c[LocalPlayer]->model.posRect->y > 0) yPosShift -= VELOCITY;
 		lastEvent[0] = KEY_PRESS_SURFACE_UP; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_S]) {
-		if (c->camera->y < BG_HEIGHT && (c->model.posRect->y == HEIGHT_w / 2)) {
-			yShift += VELOCITY;
-		}
-		else if (c->model.posRect->y < HEIGHT_w - c->model.posRect->h) {
-			yPosShift += VELOCITY;
-		}
+		if (c[LocalPlayer]->camera->y < BG_HEIGHT && (c[LocalPlayer]->model.posRect->y == HEIGHT_w / 2)) yShift += VELOCITY;
+		else if (c[LocalPlayer]->model.posRect->y < HEIGHT_w - c[LocalPlayer]->model.posRect->h) yPosShift += VELOCITY;
 		lastEvent[0] = KEY_PRESS_SURFACE_DOWN; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
-		if (c->camera->x > 0 && c->model.posRect->x == WIDTH_w / 2) {
-			xShift -= VELOCITY;
-		}
-		else if (c->model.posRect->x > 0) {
-			xPosShift -= VELOCITY;
-		}
+		if (c[LocalPlayer]->camera->x > 0 && c[LocalPlayer]->model.posRect->x == WIDTH_w / 2) xShift -= VELOCITY;
+		else if (c[LocalPlayer]->model.posRect->x > 0) xPosShift -= VELOCITY;
 		lastEvent[0] = KEY_PRESS_SURFACE_LEFT; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_D]) {
-		if (c->camera->x < BG_WIDTH && c->model.posRect->x == WIDTH_w / 2) {
-			xShift += VELOCITY;
-		}
-		else if (c->model.posRect->x < WIDTH_w - c->model.posRect->w) {
-			xPosShift += VELOCITY;
-		}
+		if (c[LocalPlayer]->camera->x < BG_WIDTH && c[LocalPlayer]->model.posRect->x == WIDTH_w / 2) xShift += VELOCITY;
+		else if (c[LocalPlayer]->model.posRect->x < WIDTH_w - c[LocalPlayer]->model.posRect->w) xPosShift += VELOCITY;
 		lastEvent[0] = KEY_PRESS_SURFACE_RIGHT; lastEvent[1]++;
 	}
-	c->model.posRect->x += xPosShift; c->model.posRect->y += yPosShift;
-	c->hitBox->x += xPosShift; c->hitBox->y += yPosShift;
-	c->model.collisionBox->x += xPosShift; c->model.collisionBox->y += yPosShift;
-	c->camera->x += xShift; c->camera->y += yShift;
-	SaveObjPosition(objs, objCount, yShift, xShift);
-	if (CheckAllCollisions(c, objs, objCount, CollisionModel)) {
-		if (c->model.posRect->x != WIDTH_w / 2 || c->model.posRect->y != HEIGHT_w / 2) {
-			c->model.posRect->x -= xPosShift; c->model.posRect->y -= yPosShift;
-			c->hitBox->x -= xPosShift; c->hitBox->y -= yPosShift;
-			c->model.collisionBox->x -= xPosShift; c->model.collisionBox->y -= yPosShift;
+	if (currentKeyStates[SDL_SCANCODE_SPACE]) {
+		c[LocalPlayer]->trap.ItemFunc(&c[LocalPlayer]->trap, true, {});
+	}
+	for (int i = 0; i < playersCount; ++i) {
+		if (c[i]->trap.isActive) {
+			c[i]->trap.ItemFunc(&c[i]->trap, false, *c[i]->model.posRect);
+			if (isCollided(*c[LocalPlayer]->hitBox, *c[i]->trap.itemModel.collisionBox)) {
+				moveCoef = 0.35;
+			}
+			c[i]->trap.itemModel.collisionBox->x -= xShift * moveCoef;
+			c[i]->trap.itemModel.collisionBox->y -= yShift * moveCoef;
+			c[i]->trap.itemModel.posRect->x -= xShift * moveCoef;
+			c[i]->trap.itemModel.posRect->y -= yShift * moveCoef;
 		}
-		if ((c->model.posRect->x == WIDTH_w / 2 || c->model.posRect->y == HEIGHT_w / 2)) {
-			c->camera->x -= xShift;
-			c->camera->y -= yShift;
-			SaveObjPosition(objs, objCount, -yShift, -xShift);
+	}
+	//if (CheckAllCollisions(c, ))
+	moveCharacter(c[LocalPlayer], xShift, yShift, xPosShift, yPosShift,moveCoef);
+	SaveObjPosition(objs, objCount, yShift*moveCoef, xShift*moveCoef);
+	if (CheckAllCollisions(c[LocalPlayer], objs, objCount, CollisionModel)) {
+		if (c[LocalPlayer]->model.posRect->x != WIDTH_w / 2 || c[LocalPlayer]->model.posRect->y != HEIGHT_w / 2) {
+			moveCharacter(c[LocalPlayer], 0, 0, -xPosShift, -yPosShift, moveCoef);
+		}
+		if ((c[LocalPlayer]->model.posRect->x == WIDTH_w / 2 || c[LocalPlayer]->model.posRect->y == HEIGHT_w / 2)) {
+			c[LocalPlayer]->camera->x -= xShift*moveCoef;
+			c[LocalPlayer]->camera->y -= yShift*moveCoef;
+			SaveObjPosition(objs, objCount, -yShift*moveCoef, -xShift*moveCoef);
 		}
 	}
 }
-
