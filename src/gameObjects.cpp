@@ -1,14 +1,16 @@
 #include "gameObjects.h"
 
-bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect hitbCfg) {
+bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox) {
 	obj->texture = lTexture;
+	obj->posRect = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+	obj->collisionBox = (SDL_Rect*)malloc(sizeof(SDL_Rect));
 	if (obj->texture == NULL) {
 		return false;
 		printf("Texture loading error!");
 	}
-	obj->posRect = posCfg;
+	*obj->posRect = posCfg;
 	obj->srcRect = srcCfg;
-	obj->hitBox = hitbCfg;
+	*obj->collisionBox = cBox;
 	return true;
 }
 
@@ -18,7 +20,7 @@ void FreeObj(gameObj* obj) {
 }
 
 void RenderObject(gameObj* obj, SDL_Renderer* renderer) {
-	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), &(obj->posRect));
+	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), (obj->posRect));
 }
 
 void Timer_Init(Timer* t) {
@@ -95,33 +97,29 @@ bool isCollided(SDL_Rect a, SDL_Rect b)
 	return true;
 }
 
-bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect hitBox, SDL_Rect camera) {
-	c->camera = (SDL_Rect*)malloc(sizeof(SDL_Rect));
-	c->posRect = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera) {
 	c->hitBox = (SDL_Rect*)malloc(sizeof(SDL_Rect));
 	c->camera = (SDL_Rect*)malloc(sizeof(SDL_Rect));
-
-	
-	c->texture = t;
-	c->posRect = &pos;
-	c->hitBox = &hitBox;
-	c->camera = &camera;
+	initGameObject(&c->model, t, pos, {}, cBox);
+	*c->hitBox = hitBox;
+	*c->camera = camera;
 	return true;
 }
 
-bool CheckAllCollisions(character* c, gameObj* objs[], int objCount) {
+bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag) {
 	for (int i = 0; i < objCount; ++i) {
-		if (isCollided((*c->hitBox), objs[i]->hitBox)) return true;
+		if (flag == CollisionModel && isCollided((*c->model.collisionBox), *objs[i]->collisionBox)) return true;
+		else if (flag == weaponRange && isCollided(*c->hitBox, *objs[i]->collisionBox)) return true;
 	}
 	return false;
 }
 
 void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift) {
 	for (int i = 0; i < objCount; i++) {
-		objs[i]->posRect.y -= yShift;
-		objs[i]->posRect.x -= xShift;
-		objs[i]->hitBox.y -= yShift;
-		objs[i]->hitBox.x -= xShift;
+		objs[i]->posRect->y -= yShift;
+		objs[i]->posRect->x -= xShift;
+		objs[i]->collisionBox->y -= yShift;
+		objs[i]->collisionBox->x -= xShift;
 	}
 }
 
@@ -130,62 +128,53 @@ void HandleMovement(character* c, const Uint8* move, size_t lastEvent[2], gameOb
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
 	if (currentKeyStates[SDL_SCANCODE_W]) {
-		if (c->camera->y > 0 && (c->posRect->y == HEIGHT_w / 2)) {
-			c->camera->y -= VELOCITY;
+		if (c->camera->y > 0 && (c->model.posRect->y == HEIGHT_w / 2)) {
 			yShift -= VELOCITY;
 		}
-		else if (c->posRect->y > 0) {
-			c->posRect->y -= VELOCITY;
-			c->hitBox->y -= VELOCITY;
+		else if (c->model.posRect->y > 0) {
 			yPosShift -= VELOCITY;
 		}
 		lastEvent[0] = KEY_PRESS_SURFACE_UP; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_S]) {
-		if (c->camera->y < BG_HEIGHT && (c->posRect->y == HEIGHT_w / 2)) {
-			c->camera->y += VELOCITY;
+		if (c->camera->y < BG_HEIGHT && (c->model.posRect->y == HEIGHT_w / 2)) {
 			yShift += VELOCITY;
 		}
-		else if (c->posRect->y < HEIGHT_w - c->posRect->h) {
-			c->posRect->y += VELOCITY;
-			c->hitBox->y += VELOCITY;
+		else if (c->model.posRect->y < HEIGHT_w - c->model.posRect->h) {
 			yPosShift += VELOCITY;
 		}
 		lastEvent[0] = KEY_PRESS_SURFACE_DOWN; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
-		if (c->camera->x > 0 && c->posRect->x == WIDTH_w / 2) {
-			c->camera->x -= VELOCITY;
+		if (c->camera->x > 0 && c->model.posRect->x == WIDTH_w / 2) {
 			xShift -= VELOCITY;
 		}
-		else if (c->posRect->x > 0) {
-			c->posRect->x -= VELOCITY;
-			c->hitBox->x -= VELOCITY;
+		else if (c->model.posRect->x > 0) {
 			xPosShift -= VELOCITY;
 		}
 		lastEvent[0] = KEY_PRESS_SURFACE_LEFT; lastEvent[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_D]) {
-		if (c->camera->x < BG_WIDTH && c->posRect->x == WIDTH_w / 2) {
-			c->camera->x += VELOCITY;
+		if (c->camera->x < BG_WIDTH && c->model.posRect->x == WIDTH_w / 2) {
 			xShift += VELOCITY;
 		}
-		else if (c->posRect->x < WIDTH_w - c->posRect->w) {
-			c->posRect->x += VELOCITY;
-			c->hitBox->x += VELOCITY;
+		else if (c->model.posRect->x < WIDTH_w - c->model.posRect->w) {
 			xPosShift += VELOCITY;
 		}
 		lastEvent[0] = KEY_PRESS_SURFACE_RIGHT; lastEvent[1]++;
 	}
+	c->model.posRect->x += xPosShift; c->model.posRect->y += yPosShift;
+	c->hitBox->x += xPosShift; c->hitBox->y += yPosShift;
+	c->model.collisionBox->x += xPosShift; c->model.collisionBox->y += yPosShift;
+	c->camera->x += xShift; c->camera->y += yShift;
 	SaveObjPosition(objs, objCount, yShift, xShift);
-	if (CheckAllCollisions(c, objs, objCount)) {
-		if (c->posRect->x != WIDTH_w / 2 || c->posRect->y != HEIGHT_w / 2) {
-			c->posRect->x -= xPosShift;
-			c->hitBox->x -= xPosShift;
-			c->posRect->y -= yPosShift;
-			c->hitBox->y -= yPosShift;
+	if (CheckAllCollisions(c, objs, objCount, CollisionModel)) {
+		if (c->model.posRect->x != WIDTH_w / 2 || c->model.posRect->y != HEIGHT_w / 2) {
+			c->model.posRect->x -= xPosShift; c->model.posRect->y -= yPosShift;
+			c->hitBox->x -= xPosShift; c->hitBox->y -= yPosShift;
+			c->model.collisionBox->x -= xPosShift; c->model.collisionBox->y -= yPosShift;
 		}
-		if ((c->posRect->x == WIDTH_w / 2 || c->posRect->y == HEIGHT_w / 2)) {
+		if ((c->model.posRect->x == WIDTH_w / 2 || c->model.posRect->y == HEIGHT_w / 2)) {
 			c->camera->x -= xShift;
 			c->camera->y -= yShift;
 			SaveObjPosition(objs, objCount, -yShift, -xShift);

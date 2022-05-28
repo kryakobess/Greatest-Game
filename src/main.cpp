@@ -60,7 +60,7 @@ int main(int argc, char* args[]) {
 
 		character Surv;
 		characterInit(&Surv, gSpriteTexture, { WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25 },
-			{ BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w });
+								{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w });
 
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
@@ -89,123 +89,19 @@ int main(int argc, char* args[]) {
 				}*/
 			}
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
+			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock};
 			HandleMovement(&Surv, currentKeyStates, lastEvent, saveObj, 3);
-			printf("rock pos: y = %d x = %d\n", rockDown.hitBox.y, rockDown.hitBox.x);
-			printf("character pos: y = %d x = %d\n", Surv.camera->y, Surv.camera->x);
-			//SaveObjPosition(saveObj, 2, yShift, xShift);
-			/*if (currentKeyStates[SDL_SCANCODE_W]) {
-				if (camera.y > 0 && (stretchRect.y == HEIGHT_w / 2)) {
-					camera.y -= VELOCITY;
-					rockUp.posRect.y += VELOCITY; rockDown.posRect.y += VELOCITY;
-					rockDown.hitBox = rockDown.posRect;
-				}
-				else if (stretchRect.y > 0) {
-					stretchRect.y -= VELOCITY;
-					hitBox.y -= VELOCITY;
-				}
-				if (isCollided(hitBox, rockDown.hitBox)) {
-					if (camera.y == 0 || stretchRect.y != HEIGHT_w / 2) {
-						stretchRect.y += VELOCITY;
-						hitBox.y += VELOCITY;
-					}
-					else {
-						camera.y += VELOCITY;
-						rockUp.posRect.y -= VELOCITY; rockDown.posRect.y -= VELOCITY;
-						rockDown.hitBox = rockDown.posRect;
-					}
-				}
-				dSp = 0; rSp = 0; lSp = 0;
-				lastEvent[0] = KEY_PRESS_SURFACE_UP; lastEvent[1] = uSp++;
-			}
-			if (currentKeyStates[SDL_SCANCODE_S]) {
-				if (camera.y < BG_HEIGHT && (stretchRect.y == HEIGHT_w / 2)) {
-					camera.y += VELOCITY;
-					rockUp.posRect.y -= VELOCITY; rockDown.posRect.y -= VELOCITY;
-					rockDown.hitBox = rockDown.posRect;
-				}
-				else if (stretchRect.y < HEIGHT_w - stretchRect.h) {
-					stretchRect.y += VELOCITY;
-					hitBox.y += VELOCITY;
-				}
-				if (isCollided(hitBox, rockDown.hitBox)) {
-					if (camera.y == BG_HEIGHT || stretchRect.y != HEIGHT_w / 2) {
-						stretchRect.y -= VELOCITY;
-						hitBox.y -= VELOCITY;
-					}
-					else {
-						camera.y -= VELOCITY;
-						rockUp.posRect.y += VELOCITY; rockDown.posRect.y += VELOCITY;
-						rockDown.hitBox = rockDown.posRect;
-					}
-				}
-				uSp = 0; rSp = 0; lSp = 0;
-				lastEvent[0] = KEY_PRESS_SURFACE_DOWN; lastEvent[1] = dSp++;
-			}
-			if (currentKeyStates[SDL_SCANCODE_A]) {
-				if (camera.x > 0 && stretchRect.x == WIDTH_w / 2) {
-					camera.x -= VELOCITY;
-					rockUp.posRect.x += VELOCITY; rockDown.posRect.x += VELOCITY;
-					rockDown.hitBox = rockDown.posRect;
-				}
-				else if (stretchRect.x > 0) {
-					stretchRect.x -= VELOCITY;
-					hitBox.x -= VELOCITY;
-				}
-				if (isCollided(hitBox, rockDown.hitBox)) {
-					if (camera.x == 0 || stretchRect.x != WIDTH_w / 2) {
-						stretchRect.x += VELOCITY;
-						hitBox.x += VELOCITY;
-					}
-					else {
-						camera.x += VELOCITY;
-						rockUp.posRect.x -= VELOCITY; rockDown.posRect.x -= VELOCITY;
-						rockDown.hitBox = rockDown.posRect;
-					}
-				}
-				uSp = 0; rSp = 0; dSp = 0;
-				lastEvent[0] = KEY_PRESS_SURFACE_LEFT; lastEvent[1] = lSp++;
-			}
-			if (currentKeyStates[SDL_SCANCODE_D]) {
-				if (camera.x < BG_WIDTH && stretchRect.x == WIDTH_w / 2) {
-					camera.x += VELOCITY;
-					rockUp.posRect.x -= VELOCITY; rockDown.posRect.x -= VELOCITY;
-					rockDown.hitBox = rockDown.posRect;
-				}
-				else if (stretchRect.x < WIDTH_w - stretchRect.w) {
-					stretchRect.x += VELOCITY;
-					hitBox.x += VELOCITY;
-				}
-				if (isCollided(hitBox, rockDown.hitBox)) {
-					if (camera.x == BG_WIDTH || stretchRect.x != WIDTH_w / 2) {
-						stretchRect.x -= VELOCITY;
-						hitBox.x -= VELOCITY;
-					}
-					else {
-						camera.x -= VELOCITY;
-						rockUp.posRect.x += VELOCITY; rockDown.posRect.x += VELOCITY;
-						rockDown.hitBox = rockDown.posRect;
-					}
-				}
-				uSp = 0; dSp = 0; lSp = 0;
-				lastEvent[0] = KEY_PRESS_SURFACE_RIGHT; lastEvent[1] = rSp++;
-			}
-			if (currentKeyStates[SDL_SCANCODE_ESCAPE]) {
-				if (Mix_PausedMusic() == 1) {
-					Mix_ResumeMusic();
-				}
-				else {
-					Mix_PauseMusic();
-				}
-			}*/
+			//printf("rock pos: y = %d x = %d\n", rockDown.collisionBox->y, rockDown.hitBox.x);
+			//printf("character pos: y = %d x = %d\n", Surv.camera->y, Surv.camera->x);
 			SDL_RenderClear(gRenderer);
 			SDL_RenderCopy(gRenderer, gBackground, Surv.camera, NULL);
-			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, &rockDown.posRect);
-			SDL_RenderCopy(gRenderer, sampleRock.texture, &sampleRock.srcRect, &sampleRock.posRect);
-			SDL_RenderCopy(gRenderer, gSpriteTexture, &Surv.spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Surv.posRect);
+			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, rockDown.posRect);
+			SDL_RenderCopy(gRenderer, sampleRock.texture, &sampleRock.srcRect, sampleRock.posRect);
+			SDL_RenderCopy(gRenderer, Surv.model.texture, &Surv.spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Surv.model.posRect);
 			SDL_RenderDrawRect(gRenderer, Surv.hitBox);
-			SDL_RenderDrawRect(gRenderer, &sampleRock.hitBox);
-			SDL_RenderCopy(gRenderer, rockUp.texture, &rockUp.srcRect, &rockUp.posRect);
+			SDL_RenderDrawRect(gRenderer, Surv.model.collisionBox);
+			SDL_RenderDrawRect(gRenderer, sampleRock.collisionBox);
+			SDL_RenderCopy(gRenderer, rockUp.texture, &rockUp.srcRect, rockUp.posRect);
 			SDL_RenderPresent(gRenderer);
 		}
 	}
