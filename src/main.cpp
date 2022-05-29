@@ -57,17 +57,24 @@ int main(int argc, char* args[]) {
 		initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 });
 		initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 });
 		if (rockUp.texture == NULL) printf("Rock!!!\n");
-		int playersCount = 1;
+		int playersCount = 2;
 
-		character* Survs = (character*)malloc(sizeof(character)*playersCount);
-		characterInit(&Survs[LocalPlayer], gSpriteTexture, {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
+		character** Survs = (character**)malloc(sizeof(character*)*playersCount);
+		for (int i = 0; i < playersCount; ++i) {
+			Survs[i] = (character*)malloc(sizeof(character));
+		}
+		characterInit(Survs[LocalPlayer], gSpriteTexture, {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
 								{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w });
-		initGameItem(&Survs[LocalPlayer].trap, loadTexture("trap.png", &gRenderer), {Survs[0].model.posRect->x, Survs[0].model.posRect->y, 100, 100},
-			{ 0,0,600,600 }, {}, ActivateTrap);
+		characterInit(Survs[1], gSpriteTexture, { 190, 180, 60, 85 }, { 190, 180, 60, 85 }, { 190, 180, 60, 85 }, {0});
+		initGameItem(&Survs[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer), {Survs[LocalPlayer]->model.posRect->x, Survs[LocalPlayer]->model.posRect->y, 100, 100},
+			{ 0,0,600,600 }, {0}, ActivateTrap);
+		initGameItem(&Survs[1]->trap, loadTexture("trap.png", &gRenderer), { Survs[1]->model.posRect->x, Survs[1]->model.posRect->y, 100, 100 },
+			{ 0,0,600,600 }, { 0 }, ActivateTrap);
 
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
-				Survs[LocalPlayer].spriteClips[i][j] = gSpriteClips[i][j];
+				Survs[LocalPlayer]->spriteClips[i][j] = gSpriteClips[i][j];
+				Survs[1]->spriteClips[i][j] = gSpriteClips[i][j];
 			}
 		}
 		//int mouseX = 0; int mouseY = 0;
@@ -91,17 +98,24 @@ int main(int argc, char* args[]) {
 					}
 				}*/
 			}
+			/*printf("rock x = %d, rock y = %d\n", rockDown.posRect->x, rockDown.posRect->y);
+			printf("trap x = %d, trap y = %d \n", Survs[0]->trap.itemModel.posRect->x, Survs[0]->trap.itemModel.posRect->y);
+			printf("trap x = %d, trap y = %d \n", Survs[1]->model.posRect->x, Survs[0]->model.posRect->y);*/
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock};
-			HandleMovement(&Survs, currentKeyStates, lastEvent, saveObj, 3, playersCount);
+			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
+			//printf("%lf\n", Survs[0].VelCoef);
+			HandleMovement(Survs, currentKeyStates, lastEvent, saveObj, 3, playersCount);
+			printf("trap %d %d\n", Survs[0]->trap.itemModel.posRect->x, Survs[0]->trap.itemModel.posRect->y);
+			printf("%d %d\n", Survs[0]->model.posRect->x, Survs[0]->model.posRect->y);
 			SDL_RenderClear(gRenderer);
-			SDL_RenderCopy(gRenderer, gBackground, Survs[LocalPlayer].camera, NULL);
+			SDL_RenderCopy(gRenderer, gBackground, Survs[LocalPlayer]->camera, NULL);
 			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, rockDown.posRect);
 			SDL_RenderCopy(gRenderer, sampleRock.texture, &sampleRock.srcRect, sampleRock.posRect);
-			SDL_RenderCopy(gRenderer, Survs[LocalPlayer].model.texture, &Survs[0].spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Survs[LocalPlayer].model.posRect);
-			for (int i = 0; i < playersCount; ++i) { if (Survs[i].trap.isActive) RenderObject(&Survs[i].trap.itemModel, gRenderer); }
-			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer].hitBox);
-			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer].model.collisionBox);
+			SDL_RenderCopy(gRenderer, Survs[1]->model.texture, &Survs[1]->spriteClips[0][0], Survs[1]->model.posRect);
+			for (int i = 0; i < playersCount; ++i) { if (Survs[i]->trap.isActive) RenderObject(&Survs[i]->trap.itemModel, gRenderer); }
+			SDL_RenderCopy(gRenderer, Survs[LocalPlayer]->model.texture, &Survs[0]->spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Survs[LocalPlayer]->model.posRect);
+			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->hitBox);
+			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->model.collisionBox);
 			SDL_RenderDrawRect(gRenderer, sampleRock.collisionBox);
 			SDL_RenderCopy(gRenderer, rockUp.texture, &rockUp.srcRect, rockUp.posRect);
 			SDL_RenderPresent(gRenderer);
