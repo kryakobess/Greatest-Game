@@ -52,6 +52,8 @@ bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SD
 	c->VelCoef = 1;
 	c->sword = { 0 };
 	c->trap = { 0 };
+	c->stamina = 100;
+	c->canRun = true;
 	return true;
 }
 
@@ -148,8 +150,26 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	c->camera->x += xShift; c->camera->y += yShift;
 }
 
-void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount, int playersCount)
+void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount, int playersCount, double velCoef)
 {
+	if (c[LocalPlayer]->stamina < 100) {
+		c[LocalPlayer]->stamina += 0.5;
+		if (c[LocalPlayer]->stamina >= 100) c[LocalPlayer]->canRun = true;
+	}
+	c[LocalPlayer]->VelCoef = velCoef;
+	for (int i = 0; i < playersCount; ++i) {
+		c[i]->trap.ItemFunc(&c[i]->trap, false, *c[i]->model.posRect);
+		if (c[i]->trap.itemModel.collisionBox != NULL) {
+			if (isCollided(*c[LocalPlayer]->model.collisionBox, *c[i]->trap.itemModel.collisionBox)) {
+				c[LocalPlayer]->VelCoef *= 0.35;
+				break;
+			}
+			else {
+				c[LocalPlayer]->VelCoef = velCoef;
+			}
+		}
+		else c[LocalPlayer]->VelCoef = velCoef;
+	}
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
@@ -173,21 +193,13 @@ void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], game
 		else if (c[LocalPlayer]->model.posRect->x < WIDTH_w - c[LocalPlayer]->model.posRect->w) xPosShift += VELOCITY;
 		lastEvent[0] = KEY_PRESS_SURFACE_RIGHT; lastEvent[1]++;
 	}
-	if (currentKeyStates[SDL_SCANCODE_SPACE]) {
+	if (currentKeyStates[SDL_SCANCODE_E]) {
 		c[LocalPlayer]->trap.ItemFunc(&c[LocalPlayer]->trap, true, *c[LocalPlayer]->model.posRect);
 	}
-	for (int i = 0; i < playersCount; ++i) {
-		c[i]->trap.ItemFunc(&c[i]->trap, false, *c[i]->model.posRect);
-		if (c[i]->trap.itemModel.collisionBox != NULL) {
-			if (isCollided(*c[LocalPlayer]->model.collisionBox, *c[i]->trap.itemModel.collisionBox)) {
-				c[LocalPlayer]->VelCoef = 0.35;
-				break;
-			}
-			else {
-				c[LocalPlayer]->VelCoef = 1;
-			}
-		}
-		else c[LocalPlayer]->VelCoef = 1;
+	if (currentKeyStates[SDL_SCANCODE_SPACE] && c[LocalPlayer]->stamina > 0 && c[LocalPlayer]->canRun) {
+		c[LocalPlayer]->VelCoef *= 2;
+		c[LocalPlayer]->stamina -= 1.5;
+		if (c[LocalPlayer]->stamina < 5) c[LocalPlayer]->canRun = false;
 	}
 	xShift *= c[LocalPlayer]->VelCoef; yShift *= c[LocalPlayer]->VelCoef;
 	xPosShift *= c[LocalPlayer]->VelCoef; yPosShift *= c[LocalPlayer]->VelCoef;

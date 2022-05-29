@@ -104,7 +104,8 @@ int main(int argc, char* args[]) {
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
 			//printf("%lf\n", Survs[0].VelCoef);
-			HandleMovement(Survs, currentKeyStates, lastEvent, saveObj, 3, playersCount);
+			HandleMovement(Survs, currentKeyStates, lastEvent, saveObj, 3, playersCount, 1);
+			printf("stamina = %lf\n", Survs[LocalPlayer]->stamina);
 			printf("trap %d %d\n", Survs[0]->trap.itemModel.posRect->x, Survs[0]->trap.itemModel.posRect->y);
 			printf("%d %d\n", Survs[0]->model.posRect->x, Survs[0]->model.posRect->y);
 			SDL_RenderClear(gRenderer);
