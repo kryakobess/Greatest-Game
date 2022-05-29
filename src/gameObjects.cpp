@@ -42,6 +42,22 @@ void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect posRect) {
 	}
 }
 
+void ReleaseSpikes(character* players[], int pCount, int velCoef) {
+	for (int i = 0; i < pCount; ++i) {
+		players[i]->trap.ItemFunc(&players[i]->trap, false, *players[i]->model.posRect);
+		if (players[i]->trap.itemModel.collisionBox != NULL) {
+			if (isCollided(*players[LocalPlayer]->model.collisionBox, *players[i]->trap.itemModel.collisionBox)) {
+				players[LocalPlayer]->VelCoef *= 0.35;
+				break;
+			}
+			else {
+				players[LocalPlayer]->VelCoef = velCoef;
+			}
+		}
+		else players[LocalPlayer]->VelCoef = velCoef;
+	}
+}
+
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera) 
 {
 	c->hitBox = (SDL_Rect*)malloc(sizeof(SDL_Rect));
@@ -94,7 +110,7 @@ bool isCollided(SDL_Rect a, SDL_Rect b)
 bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag) 
 {
 	for (int i = 0; i < objCount; ++i) {
-		if (flag == CollisionModel && isCollided((*c->model.collisionBox), *objs[i]->collisionBox)) return true;
+		if (objs[i]->collisionBox != NULL && flag == CollisionModel && isCollided((*c->model.collisionBox), *objs[i]->collisionBox)) return true;
 		else if (flag == weaponRange && isCollided(*c->hitBox, *objs[i]->collisionBox)) return true;
 	}
 	return false;
@@ -123,10 +139,6 @@ void SavePlayersPosition(character** p, int pCount, int yShift, int xShift) {
 			p[i]->model.collisionBox->y -= yShift;
 			p[i]->hitBox->y -= yShift;
 			p[i]->model.posRect->y -= yShift;
-		}
-		if (p[i]->trap.itemModel.collisionBox != NULL) {
-			p[i]->trap.itemModel.collisionBox->x -= xShift;
-			p[i]->trap.itemModel.collisionBox->y -= yShift;
 		}
 		if (p[i]->trap.itemModel.posRect != NULL) {
 			p[i]->trap.itemModel.posRect->x -= xShift;
@@ -157,19 +169,7 @@ void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], game
 		if (c[LocalPlayer]->stamina >= 100) c[LocalPlayer]->canRun = true;
 	}
 	c[LocalPlayer]->VelCoef = velCoef;
-	for (int i = 0; i < playersCount; ++i) {
-		c[i]->trap.ItemFunc(&c[i]->trap, false, *c[i]->model.posRect);
-		if (c[i]->trap.itemModel.collisionBox != NULL) {
-			if (isCollided(*c[LocalPlayer]->model.collisionBox, *c[i]->trap.itemModel.collisionBox)) {
-				c[LocalPlayer]->VelCoef *= 0.35;
-				break;
-			}
-			else {
-				c[LocalPlayer]->VelCoef = velCoef;
-			}
-		}
-		else c[LocalPlayer]->VelCoef = velCoef;
-	}
+	ReleaseSpikes(c, playersCount, velCoef);
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;

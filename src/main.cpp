@@ -53,7 +53,7 @@ int main(int argc, char* args[]) {
 	{
 		SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
 		gameObj rockUp; gameObj rockDown; gameObj sampleRock;
-		initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, {});
+		initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, {0});
 		initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 });
 		initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 });
 		if (rockUp.texture == NULL) printf("Rock!!!\n");
@@ -98,22 +98,15 @@ int main(int argc, char* args[]) {
 					}
 				}*/
 			}
-			/*printf("rock x = %d, rock y = %d\n", rockDown.posRect->x, rockDown.posRect->y);
-			printf("trap x = %d, trap y = %d \n", Survs[0]->trap.itemModel.posRect->x, Survs[0]->trap.itemModel.posRect->y);
-			printf("trap x = %d, trap y = %d \n", Survs[1]->model.posRect->x, Survs[0]->model.posRect->y);*/
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
-			//printf("%lf\n", Survs[0].VelCoef);
 			HandleMovement(Survs, currentKeyStates, lastEvent, saveObj, 3, playersCount, 1);
-			printf("stamina = %lf\n", Survs[LocalPlayer]->stamina);
-			printf("trap %d %d\n", Survs[0]->trap.itemModel.posRect->x, Survs[0]->trap.itemModel.posRect->y);
-			printf("%d %d\n", Survs[0]->model.posRect->x, Survs[0]->model.posRect->y);
 			SDL_RenderClear(gRenderer);
 			SDL_RenderCopy(gRenderer, gBackground, Survs[LocalPlayer]->camera, NULL);
 			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, rockDown.posRect);
 			SDL_RenderCopy(gRenderer, sampleRock.texture, &sampleRock.srcRect, sampleRock.posRect);
-			SDL_RenderCopy(gRenderer, Survs[1]->model.texture, &Survs[1]->spriteClips[0][0], Survs[1]->model.posRect);
 			for (int i = 0; i < playersCount; ++i) { if (Survs[i]->trap.isActive) RenderObject(&Survs[i]->trap.itemModel, gRenderer); }
+			SDL_RenderCopy(gRenderer, Survs[1]->model.texture, &Survs[1]->spriteClips[0][0], Survs[1]->model.posRect);
 			SDL_RenderCopy(gRenderer, Survs[LocalPlayer]->model.texture, &Survs[0]->spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Survs[LocalPlayer]->model.posRect);
 			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->hitBox);
 			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->model.collisionBox);
