@@ -1,6 +1,6 @@
 #include "gameEnv.h"
 #include "gameObjects.h"
-#include "DateBase.h"
+#include "DateBase\DateBase.h"
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
@@ -48,7 +48,7 @@ bool loadMedia()
 int main(int argc, char* args[])
 {
 
-	InitializeGameData();
+	//InitializeGameData();
 	return 0;
 }
 
