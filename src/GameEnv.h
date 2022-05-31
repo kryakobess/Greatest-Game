@@ -30,6 +30,8 @@ void Timer_Pause(Timer* t);
 void Timer_Unpause(Timer* t);
 Uint32 Timer_GetTicks(Timer* t);
 
+bool isCollided(SDL_Rect a, SDL_Rect b);
+
 //Initializing game screen
 bool IinitScreen(SDL_Window** gWindow, SDL_Renderer** gRenderer, Mix_Music** gMusic, const int winW, const int winH);
 //loads a texture

@@ -52,7 +52,6 @@ typedef struct character {
 bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox);
 void FreeObj(gameObj* obj);
 void RenderObject(gameObj* obj, SDL_Renderer* renderer);
-bool isCollided(SDL_Rect a, SDL_Rect b);
 
 bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(gameItem*, bool, SDL_Rect));
 void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect);

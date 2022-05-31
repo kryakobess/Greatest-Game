@@ -1,7 +1,6 @@
 #include "gameEnv.h"
 #include "gameObjects.h"
 
-
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 Mix_Music* gMusic = NULL;
@@ -53,7 +52,7 @@ int main(int argc, char* args[]) {
 	{
 		SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
 		gameObj rockUp; gameObj rockDown; gameObj sampleRock;
-		initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, {0});
+		initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, {-10000,-10000, 0, 0});
 		initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 });
 		initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 });
 		if (rockUp.texture == NULL) printf("Rock!!!\n");
@@ -101,16 +100,19 @@ int main(int argc, char* args[]) {
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
 			HandleMovement(Survs, currentKeyStates, lastEvent, saveObj, 3, playersCount, 1);
+			printf("y = %d x = %d\n", Survs[0]->model.posRect->y, Survs[0]->model.posRect->x);
 			SDL_RenderClear(gRenderer);
 			SDL_RenderCopy(gRenderer, gBackground, Survs[LocalPlayer]->camera, NULL);
 			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, rockDown.posRect);
 			SDL_RenderCopy(gRenderer, sampleRock.texture, &sampleRock.srcRect, sampleRock.posRect);
-			for (int i = 0; i < playersCount; ++i) { if (Survs[i]->trap.isActive) RenderObject(&Survs[i]->trap.itemModel, gRenderer); }
+			for (int i = 0; i < playersCount; ++i) {
+				if (Survs[i]->trap.isActive) RenderObject(&Survs[i]->trap.itemModel, gRenderer);
+			}
 			SDL_RenderCopy(gRenderer, Survs[1]->model.texture, &Survs[1]->spriteClips[0][0], Survs[1]->model.posRect);
 			SDL_RenderCopy(gRenderer, Survs[LocalPlayer]->model.texture, &Survs[0]->spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Survs[LocalPlayer]->model.posRect);
 			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->hitBox);
 			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->model.collisionBox);
-			SDL_RenderDrawRect(gRenderer, sampleRock.collisionBox);
+			SDL_RenderDrawRect(gRenderer, rockDown.collisionBox);
 			SDL_RenderCopy(gRenderer, rockUp.texture, &rockUp.srcRect, rockUp.posRect);
 			SDL_RenderPresent(gRenderer);
 		}

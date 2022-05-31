@@ -16,7 +16,7 @@ bool IinitScreen(SDL_Window** gWindow, SDL_Renderer** gRenderer, Mix_Music** gMu
 			else {
 				SDL_SetRenderDrawColor(*gRenderer, 0xEF, 0x32, 0xFF, 0xFF);
 				int imgFlags = IMG_INIT_PNG;
-				if (!(IMG_Init(imgFlags) && imgFlags)) {
+				if (!(IMG_Init(imgFlags) & imgFlags)) {
 					printf("IMG init error %s\n", IMG_GetError());
 					return false;
 				}
@@ -54,6 +54,25 @@ void DestroyAll(SDL_Window** gWindow, SDL_Renderer** gRenderer, Mix_Music** gMus
 	Mix_Quit();
 	IMG_Quit();
 	SDL_Quit();
+}
+
+bool isCollided(SDL_Rect a, SDL_Rect b)
+{
+	int leftA = a.x;
+	int rightA = a.x + a.w;
+	int topA = a.y;
+	int bottomA = a.y + a.h;
+
+	int leftB = b.x;
+	int rightB = b.x + b.w;
+	int topB = b.y;
+	int bottomB = b.y + b.h;
+
+	if (bottomA <= topB) return false;
+	if (topA >= bottomB) return false;
+	if (rightA <= leftB) return false;
+	if (leftA >= rightB) return false;
+	return true;
 }
 
 void Timer_Init(Timer* t) {

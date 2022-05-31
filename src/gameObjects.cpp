@@ -88,25 +88,6 @@ void RenderObject(gameObj* obj, SDL_Renderer* renderer)
 	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), (obj->posRect));
 }
 
-bool isCollided(SDL_Rect a, SDL_Rect b)
-{
-	int leftA = a.x;
-	int rightA = a.x + a.w;
-	int topA = a.y;
-	int bottomA = a.y + a.h;
-
-	int leftB = b.x;
-	int rightB = b.x + b.w;
-	int topB = b.y;
-	int bottomB = b.y + b.h;
-
-	if (bottomA <= topB) return false;
-	if (topA >= bottomB) return false;
-	if (rightA <= leftB) return false;
-	if (leftA >= rightB) return false;
-	return true;
-}
-
 bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag) 
 {
 	for (int i = 0; i < objCount; ++i) {
@@ -170,6 +151,7 @@ void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], game
 	}
 	c[LocalPlayer]->VelCoef = velCoef;
 	ReleaseSpikes(c, playersCount, velCoef);
+
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
@@ -201,18 +183,19 @@ void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], game
 		c[LocalPlayer]->stamina -= 1.5;
 		if (c[LocalPlayer]->stamina < 5) c[LocalPlayer]->canRun = false;
 	}
+
 	xShift *= c[LocalPlayer]->VelCoef; yShift *= c[LocalPlayer]->VelCoef;
 	xPosShift *= c[LocalPlayer]->VelCoef; yPosShift *= c[LocalPlayer]->VelCoef;
 	moveCharacter(c[LocalPlayer], xShift, yShift, xPosShift, yPosShift);
 	SaveObjPosition(objs, objCount, yShift, xShift);
 	SavePlayersPosition(c, playersCount, yShift , xShift);
+
 	if (CheckAllCollisions(c[LocalPlayer], objs, objCount, CollisionModel)) {
 		if (c[LocalPlayer]->model.posRect->x != WIDTH_w / 2 || c[LocalPlayer]->model.posRect->y != HEIGHT_w / 2) {
 			moveCharacter(c[LocalPlayer], 0, 0, -xPosShift, -yPosShift);
 		}
-		if ((c[LocalPlayer]->model.posRect->x == WIDTH_w / 2 || c[LocalPlayer]->model.posRect->y == HEIGHT_w / 2)) {
-			c[LocalPlayer]->camera->x -= xShift;
-			c[LocalPlayer]->camera->y -= yShift;
+		if ((abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10 || abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2) <= 10)) {
+			moveCharacter(c[LocalPlayer], -xShift, -yShift, 0, 0);
 			SavePlayersPosition(c, playersCount, -yShift, -xShift);
 			SaveObjPosition(objs, objCount, -yShift, -xShift);
 		}
