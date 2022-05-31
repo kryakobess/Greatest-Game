@@ -16,7 +16,7 @@ bool IinitScreen(SDL_Window** gWindow, SDL_Renderer** gRenderer, Mix_Music** gMu
 			else {
 				SDL_SetRenderDrawColor(*gRenderer, 0xEF, 0x32, 0xFF, 0xFF);
 				int imgFlags = IMG_INIT_PNG;
-				if (!(IMG_Init(imgFlags) && imgFlags)) {
+				if (!(IMG_Init(imgFlags) & imgFlags)) {
 					printf("IMG init error %s\n", IMG_GetError());
 					return false;
 				}

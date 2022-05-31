@@ -1,6 +1,6 @@
 #include "gameEnv.h"
 #include "gameObjects.h"
-
+#include "DateBase.h"
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
@@ -37,12 +37,19 @@ bool loadMedia()
 		printf("bg fail\n");
 		success = false;
 	}
-	gMusic = Mix_LoadMUS("soundtrack1.mp3");
+	gMusic = Mix_LoadMUS("music.mp3");
 	if (gMusic == NULL) {
 		printf("Soundtrack error!\n");
 		success = false;
 	}
 	return success;
+}
+
+int main(int argc, char* args[])
+{
+
+	InitializeGameData();
+	return 0;
 }
 
 int main(int argc, char* args[]) {
@@ -77,26 +84,25 @@ int main(int argc, char* args[]) {
 				Survs[1]->spriteClips[i][j] = gSpriteClips[i][j];
 			}
 		}
-		//int mouseX = 0; int mouseY = 0;
+		int mouseX = 0; int mouseY = 0;
 		size_t lastEvent[2] = { 0,0 };
 		bool quit = false;
 		SDL_Event event;
 		Mix_PlayMusic(gMusic, -1);
 		while (!quit) {
-			while (SDL_PollEvent(&event) != 0) {
-				if (event.type == SDL_QUIT) {
-					quit = true;
-				}
-				/*else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP ) {
-					SDL_GetMouseState(&mouseX, &mouseY);
-					if ((mouseX >= (stretchRect.x)) && (mouseX <= (stretchRect.x + stretchRect.w)) &&
-						(mouseY >= (stretchRect.y)) && (mouseY <= (stretchRect.y + stretchRect.h)))
-					{
-						if (event.button.state == SDL_PRESSED) {
-							printf("This is me!\n");
-						}
+			SDL_PollEvent(&event);
+			if (event.type == SDL_QUIT) {
+				quit = true;
+			}
+			else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP ) {
+				SDL_GetMouseState(&mouseX, &mouseY);
+				if ((mouseX >= (Survs[LocalPlayer]->model.posRect->x)) && (mouseX <= (Survs[LocalPlayer]->model.posRect->x + Survs[LocalPlayer]->model.posRect->w)) &&
+					(mouseY >= (Survs[LocalPlayer]->model.posRect->y)) && (mouseY <= (Survs[LocalPlayer]->model.posRect->y + Survs[LocalPlayer]->model.posRect->h)))
+				{
+					if (event.button.state == SDL_PRESSED) {
+						printf("This is me!\n");
 					}
-				}*/
+				}
 			}
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
