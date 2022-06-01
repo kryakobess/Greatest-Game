@@ -1,20 +1,31 @@
+#include <SDL.h>
 #include "GameEnv.h"
 
-#define TILE_WIDTH 80
-#define TILE_HEIGHT 80
-#define TOTAL_TILES 192
+#define WIDTH_TILE 80
+#define HEIGHT_TILE 80
 
-const enum TileType {
-	SmoothBrick,
-	MoldyBrick,
-	Dirt, 
-	Flowers
-};
+SDL_Texture* gTileTexture;
 
-typedef struct Tile {
-	SDL_Rect box;
-	char type;
+typedef enum tileType
+{
+	BRICK,
+	BROKEN_BRICK,
+	MAX_COUNT_TILETYPE
+}TileType;
+
+typedef struct tile
+{
+	SDL_Rect tileBox;
+	TileType tileType;
 }Tile;
 
-bool TileInit(Tile* tile);
-void TileRender(Tile* tile, SDL_Renderer* render);
+typedef struct Matrix
+{
+	SDL_Rect gTileClips[MAX_COUNT_TILETYPE];
+	size_t countRow;
+	size_t countCol;
+	Tile** tileArray;
+}Matrix;
+
+void DrawLabirint(SDL_Rect& camera, const Matrix* matrix);
+void InitLabirintMatrix(Matrix* matrix);
