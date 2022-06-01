@@ -8,10 +8,12 @@ SDL_Rect gSpriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
 SDL_Texture* gSpriteTexture = NULL;
 SDL_Texture* gBackground = NULL;
 gameObj rockUp; gameObj rockDown; gameObj sampleRock;
+gameObj* objs[] = { &rockUp, &rockDown, &sampleRock };
+int objNumber = 3;
 SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
 int playersCount = 1;
 character** players = (character**)malloc(sizeof(character*) * playersCount);
-
+SDL_Event event;
 
 bool loadMedia()
 {
@@ -40,7 +42,7 @@ bool loadMedia()
 		printf("bg fail\n");
 		success = false;
 	}
-	gMusic = Mix_LoadMUS("music.mp3");
+	gMusic = Mix_LoadMUS("soundtrack1.mp3");
 	if (gMusic == NULL) {
 		printf("Soundtrack error!\n");
 		success = false;
@@ -71,7 +73,9 @@ bool InitializeGameData(enum DataType dataType)
 				players[LocalPlayer]->spriteClips[i][j] = gSpriteClips[i][j];
 			}
 		}
+		SDL_PollEvent(&event);
 	}
+	return true;
 }
 
 void GetData(enum DataType dataType) {
@@ -83,20 +87,48 @@ void SendData(enum DataType dataType) {
 }
 
 void Drawing() {
-
+	SDL_RenderClear(gRenderer);
+	SDL_RenderCopy(gRenderer, gBackground, players[LocalPlayer]->camera, NULL);
+	for (int i = 0; i < playersCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
+	RenderObject(&rockDown, gRenderer);
+	RenderObject(&sampleRock, gRenderer);
+	for (int i = playersCount - 1; i >= LocalPlayer; --i) {
+		players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][(players[i]->spriteNumber[1] / 8) % 4];
+		RenderObject(&players[i]->model, gRenderer);
+	}
+	RenderObject(&rockUp, gRenderer);
+	SDL_RenderPresent(gRenderer);
 }
 
-void HandleInput() {
-
+bool HandleInput(SDL_Event e, double velCoef) {
+	int mouseX = 0; int mouseY = 0;
+	SDL_PollEvent(&e);
+	if (e.type == SDL_QUIT) {
+			return false;
+	}
+	else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
+		SDL_GetMouseState(&mouseX, &mouseY);
+		if ((mouseX >= (players[LocalPlayer]->model.posRect->x)) && (mouseX <= (players[LocalPlayer]->model.posRect->x + players[LocalPlayer]->model.posRect->w)) &&
+			(mouseY >= (players[LocalPlayer]->model.posRect->y)) && (mouseY <= (players[LocalPlayer]->model.posRect->y + players[LocalPlayer]->model.posRect->h)))
+		{
+			if (e.button.state == SDL_PRESSED) {
+				printf("This is me!\n");
+			}
+		}
+	}
+	const Uint8* movement = SDL_GetKeyboardState(NULL);
+	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef);
+	return true;
 }
 
 
 void GameLoop(enum DataType dataType)
 {
+	Mix_PlayMusic(gMusic, -1);
 	while (true) {
 		GetData(dataType);
 		Drawing();
-		HandleInput();
+		if (!HandleInput(event, 1)) break;
 		SendData(dataType);
 	}
 }

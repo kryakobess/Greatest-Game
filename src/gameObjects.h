@@ -43,6 +43,7 @@ typedef struct character {
 	SDL_Rect* hitBox;
 	SDL_Rect spriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
 	SDL_Rect* camera;
+	size_t spriteNumber[2];
 	bool canRun;
 	double stamina;
 	double VelCoef;
@@ -57,7 +58,7 @@ bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg,
 void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect);
 
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera);
-void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount, int playersCount, double velCoef);
+void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef);
 void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift);
 bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag);
 
