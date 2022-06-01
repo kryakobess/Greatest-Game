@@ -75,6 +75,54 @@ bool isCollided(SDL_Rect a, SDL_Rect b)
 	return true;
 }
 
+double distanceSquared(int x1, int y1, int x2, int y2)
+{
+	int deltaX = x2 - x1;
+	int deltaY = y2 - y1;
+	return deltaX * deltaX + deltaY * deltaY;
+}
+
+bool isCollided(Circle c, SDL_Rect r) {
+	//Closest point on collision box
+	int cX, cY;
+	//Find closest x offset
+	if (c.x < r.x)
+	{
+		cX = r.x;
+	}
+	else if (c.x > r.x + r.w)
+	{
+		cX = r.x + r.w;
+	}
+	else
+	{
+		cX = c.x;
+	}
+	//Find closest y offset
+	if (c.y < r.y)
+	{
+		cY = r.y;
+	}
+	else if (c.y > r.y + r.h)
+	{
+		cY = r.y + r.h;
+	}
+	else
+	{
+		cY = c.y;
+	}
+
+	//If the closest point is inside the circle
+	if (distanceSquared(c.x, c.y, cX, cY) < c.r * c.r)
+	{
+		//This box and the circle have collided
+		return true;
+	}
+
+	//If the shapes have not collided
+	return false;
+}
+
 void Timer_Init(Timer* t) {
 	t->startTicks = 0;
 	t->pausedTicks = 0;

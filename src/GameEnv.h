@@ -16,6 +16,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+typedef struct Circle {
+	int x, y;
+	int r;
+}Circle;
+
 typedef struct Timer {
 	Uint32 startTicks;
 	Uint32 pausedTicks;
@@ -31,6 +36,7 @@ void Timer_Unpause(Timer* t);
 Uint32 Timer_GetTicks(Timer* t);
 
 bool isCollided(SDL_Rect a, SDL_Rect b);
+bool isCollided(Circle c, SDL_Rect r);
 
 //Initializing game screen
 bool IinitScreen(SDL_Window** gWindow, SDL_Renderer** gRenderer, Mix_Music** gMusic, const int winW, const int winH);
