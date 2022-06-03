@@ -68,6 +68,7 @@ bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SD
 	c->VelCoef = 1;
 	c->sword = { 0 };
 	c->trap = { 0 };
+	c->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c->spriteNumber[1] = 0;
 	c->stamina = 100;
 	c->canRun = true;
 	return true;
@@ -143,7 +144,7 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	c->camera->x += xShift; c->camera->y += yShift;
 }
 
-void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], gameObj* objs[], int objCount, int playersCount, double velCoef)
+void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef)
 {
 	if (c[LocalPlayer]->stamina < 100) {
 		c[LocalPlayer]->stamina += 0.5;
@@ -158,22 +159,22 @@ void HandleMovement(character* c[], const Uint8* move, size_t lastEvent[2], game
 	if (currentKeyStates[SDL_SCANCODE_W]) {
 		if (c[LocalPlayer]->camera->y > 0 && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
 		else if (c[LocalPlayer]->model.posRect->y > 0) yPosShift -= VELOCITY;
-		lastEvent[0] = KEY_PRESS_SURFACE_UP; lastEvent[1]++;
+		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_UP; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_S]) {
 		if (c[LocalPlayer]->camera->y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2 )<= 10)) yShift += VELOCITY;
 		else if (c[LocalPlayer]->model.posRect->y < HEIGHT_w - c[LocalPlayer]->model.posRect->h) yPosShift += VELOCITY;
-		lastEvent[0] = KEY_PRESS_SURFACE_DOWN; lastEvent[1]++;
+		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
 		if (c[LocalPlayer]->camera->x > 0 && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
 		else if (c[LocalPlayer]->model.posRect->x > 0) xPosShift -= VELOCITY;
-		lastEvent[0] = KEY_PRESS_SURFACE_LEFT; lastEvent[1]++;
+		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_LEFT; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_D]) {
 		if (c[LocalPlayer]->camera->x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
 		else if (c[LocalPlayer]->model.posRect->x < WIDTH_w - c[LocalPlayer]->model.posRect->w) xPosShift += VELOCITY;
-		lastEvent[0] = KEY_PRESS_SURFACE_RIGHT; lastEvent[1]++;
+		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_RIGHT; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_E]) {
 		c[LocalPlayer]->trap.ItemFunc(&c[LocalPlayer]->trap, true, *c[LocalPlayer]->model.posRect);

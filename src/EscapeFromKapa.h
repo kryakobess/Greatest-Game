@@ -3,6 +3,7 @@
 
 #include "gameEnv.h"
 #include "gameObjects.h"
+#include "gameMap.h"
 
 bool InitializeGameData(enum DataType dataType);
 void GameLoop(enum DataType dataType);
