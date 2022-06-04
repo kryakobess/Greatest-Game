@@ -54,5 +54,5 @@ CircleCollider* CreateCircleCollider(int x, int y, size_t r)
 }
 void GetCollisionStates(CollidersArray* colArr)
 {
-
+	
 }
