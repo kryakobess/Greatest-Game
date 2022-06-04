@@ -31,7 +31,8 @@ typedef struct gameObj {
 
 typedef struct gameItem {
 	gameObj itemModel;
-	void(*ItemFunc)(gameItem*, bool, SDL_Rect);
+	void(*ItemFunc)(gameItem*, int, SDL_Rect*);
+	Circle* collisionCircle;
 	Timer delay;
 	bool isActive;
 }gameItem;
@@ -44,6 +45,7 @@ typedef struct character {
 	SDL_Rect spriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
 	SDL_Rect* camera;
 	size_t spriteNumber[2];
+	bool hasSword;
 	bool canRun;
 	double stamina;
 	double VelCoef;
@@ -51,11 +53,13 @@ typedef struct character {
 
 
 bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox);
-void FreeObj(gameObj* obj);
+void ObjFree(gameObj* obj);
 void RenderObject(gameObj* obj, SDL_Renderer* renderer);
 
-bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(gameItem*, bool, SDL_Rect));
-void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect);
+bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(gameItem*, int, SDL_Rect*));
+void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect);
+void ActivateSword(gameItem* sword, int spriteNumber, SDL_Rect* posRect);
+void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int spriteDirect);
 
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera);
 void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef);

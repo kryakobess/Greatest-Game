@@ -25,7 +25,6 @@ bool loadMedia()
 		printf("Sprite texture loading fail!");
 		success = false;
 	}
-
 	for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
 		for (int j = 0; j < SPRITE_NUMBER; ++j) {
 			gSpriteClips[i][j].w = 210;
@@ -68,6 +67,8 @@ bool InitializeGameData(enum DataType dataType)
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w })) return false;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
 		{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, { 0,0,600,600 }, {0}, ActivateTrap)) return false;
+		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword)) return false;
+		players[LocalPlayer]->hasSword = true;
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
 				players[LocalPlayer]->spriteClips[i][j] = gSpriteClips[i][j];
@@ -93,30 +94,38 @@ void Drawing() {
 	RenderObject(&rockDown, gRenderer);
 	RenderObject(&sampleRock, gRenderer);
 	for (int i = playersCount - 1; i >= LocalPlayer; --i) {
-		players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][(players[i]->spriteNumber[1] / 8) % 4];
-		RenderObject(&players[i]->model, gRenderer);
+		if (players[i]->hasSword && players[i]->sword.isActive) {
+			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][1];
+			if (players[i]->spriteNumber[0] == KEY_PRESS_SURFACE_UP) {
+				AttackSword(&players[i]->sword, gRenderer, 0, players[i]->spriteNumber[0]);
+				RenderObject(&players[i]->model, gRenderer);
+			}
+			else {
+				RenderObject(&players[i]->model, gRenderer);
+				AttackSword(&players[i]->sword, gRenderer, 0, players[i]->spriteNumber[0]);
+			}
+		}
+		else {
+			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][(players[i]->spriteNumber[1] / 8) % 4];
+			RenderObject(&players[i]->model, gRenderer);
+		}
 	}
 	RenderObject(&rockUp, gRenderer);
 	SDL_RenderPresent(gRenderer);
 }
 
 bool HandleInput(SDL_Event e, double velCoef) {
-	int mouseX = 0; int mouseY = 0;
 	SDL_PollEvent(&e);
 	if (e.type == SDL_QUIT) {
 			return false;
 	}
-	else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
-		SDL_GetMouseState(&mouseX, &mouseY);
-		if ((mouseX >= (players[LocalPlayer]->model.posRect->x)) && (mouseX <= (players[LocalPlayer]->model.posRect->x + players[LocalPlayer]->model.posRect->w)) &&
-			(mouseY >= (players[LocalPlayer]->model.posRect->y)) && (mouseY <= (players[LocalPlayer]->model.posRect->y + players[LocalPlayer]->model.posRect->h)))
-		{
-			if (e.button.state == SDL_PRESSED) {
-				printf("This is me!\n");
-			}
+	const Uint8* movement = SDL_GetKeyboardState(NULL);
+	if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
+		if (players[LocalPlayer]->hasSword && (Timer_GetTicks(&players[LocalPlayer]->sword.delay) >= 1000) && e.button.state == SDL_PRESSED) {
+			players[LocalPlayer]->sword.ItemFunc(&players[LocalPlayer]->sword, players[LocalPlayer]->spriteNumber[0], players[LocalPlayer]->model.posRect);
 		}
 	}
-	const Uint8* movement = SDL_GetKeyboardState(NULL);
+	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
 	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef);
 	return true;
 }
@@ -132,76 +141,3 @@ void GameLoop(enum DataType dataType)
 		SendData(dataType);
 	}
 }
-
-//int main(int argc, char* args[]) {
-//	if (!IinitScreen(&gWindow, &gRenderer, &gMusic, WIDTH_w, HEIGHT_w)) {
-//		printf("Initialization error!");
-//	}
-//	else if (loadMedia())
-//	{
-//		SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
-//		gameObj rockUp; gameObj rockDown; gameObj sampleRock;
-//		initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, {0});
-//		initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 });
-//		initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 });
-//		if (rockUp.texture == NULL) printf("Rock!!!\n");
-//		int playersCount = 2;
-//
-//		character** Survs = (character**)malloc(sizeof(character*)*playersCount);
-//		for (int i = 0; i < playersCount; ++i) {
-//			Survs[i] = (character*)malloc(sizeof(character));
-//		}
-//		characterInit(Survs[LocalPlayer], gSpriteTexture, {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
-//								{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w });
-//		characterInit(Survs[1], gSpriteTexture, { 190, 180, 60, 85 }, { 190, 180, 60, 85 }, { 190, 180, 60, 85 }, {0});
-//		initGameItem(&Survs[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer), {Survs[LocalPlayer]->model.posRect->x, Survs[LocalPlayer]->model.posRect->y, 100, 100},
-//			{ 0,0,600,600 }, {0}, ActivateTrap);
-//		initGameItem(&Survs[1]->trap, loadTexture("trap.png", &gRenderer), { Survs[1]->model.posRect->x, Survs[1]->model.posRect->y, 100, 100 },
-//			{ 0,0,600,600 }, { 0 }, ActivateTrap);
-//
-//		for (int i = 0; i < 4; ++i) {
-//			for (int j = 0; j < 4; ++j) {
-//				Survs[LocalPlayer]->spriteClips[i][j] = gSpriteClips[i][j];
-//				Survs[1]->spriteClips[i][j] = gSpriteClips[i][j];
-//			}
-//		}
-//		int mouseX = 0; int mouseY = 0;
-//		size_t lastEvent[2] = { 0,0 };
-//		bool quit = false;
-//		SDL_Event event;
-//		Mix_PlayMusic(gMusic, -1);
-//		while (!quit) {
-//			SDL_PollEvent(&event);
-//			if (event.type == SDL_QUIT) {
-//				quit = true;
-//			}
-//			else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP ) {
-//				SDL_GetMouseState(&mouseX, &mouseY);
-//				if ((mouseX >= (Survs[LocalPlayer]->model.posRect->x)) && (mouseX <= (Survs[LocalPlayer]->model.posRect->x + Survs[LocalPlayer]->model.posRect->w)) &&
-//					(mouseY >= (Survs[LocalPlayer]->model.posRect->y)) && (mouseY <= (Survs[LocalPlayer]->model.posRect->y + Survs[LocalPlayer]->model.posRect->h)))
-//				{
-//					if (event.button.state == SDL_PRESSED) {
-//						printf("This is me!\n");
-//					}
-//				}
-//			}
-//			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-//			gameObj* saveObj[3] = { &rockUp, &rockDown, &sampleRock };
-//			HandleMovement(Survs, currentKeyStates, lastEvent, saveObj, 3, playersCount, 1);
-//			SDL_RenderClear(gRenderer);
-//			SDL_RenderCopy(gRenderer, gBackground, Survs[LocalPlayer]->camera, NULL);
-//			SDL_RenderCopy(gRenderer, rockDown.texture, &rockDown.srcRect, rockDown.posRect);
-//			SDL_RenderCopy(gRenderer, sampleRock.texture, &sampleRock.srcRect, sampleRock.posRect);
-//			for (int i = 0; i < playersCount; ++i) { if (Survs[i]->trap.isActive) RenderObject(&Survs[i]->trap.itemModel, gRenderer); }
-//			SDL_RenderCopy(gRenderer, Survs[1]->model.texture, &Survs[1]->spriteClips[0][0], Survs[1]->model.posRect);
-//			SDL_RenderCopy(gRenderer, Survs[LocalPlayer]->model.texture, &Survs[0]->spriteClips[lastEvent[0]][((lastEvent[1]) / 8) % 4], Survs[LocalPlayer]->model.posRect);
-//			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->hitBox);
-//			SDL_RenderDrawRect(gRenderer, Survs[LocalPlayer]->model.collisionBox);
-//			SDL_RenderDrawRect(gRenderer, sampleRock.collisionBox);
-//			SDL_RenderCopy(gRenderer, rockUp.texture, &rockUp.srcRect, rockUp.posRect);
-//			SDL_RenderPresent(gRenderer);
-//		}
-//	}
-//	DestroyAll(&gWindow, &gRenderer, &gMusic);
-//	return 0;
-//}
