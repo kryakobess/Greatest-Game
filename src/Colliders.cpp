@@ -2,12 +2,15 @@
 
 bool InitCollidersArray(CollidersArray* colArr, size_t maxIDcount)
 {
+	colArr->maxIDcount = maxIDcount;
 	for (int id = 0; id < maxIDcount; id++)
 	{
 		colArr->collidersCount[id] = 0;
 		colArr->collidersMemCount[id] = 1;
 		if ((colArr->colliders[id] = (Collider*)calloc(1, sizeof(Collider))) == NULL) return false;
 		if ((colArr->collisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
+		for (int id2 = 0; id2 < maxIDcount; id2++) colArr->collisionMatrix[id][id2] = false;
+		if ((colArr->outCollisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
 	}
 	return true;
 }
@@ -48,4 +51,8 @@ CircleCollider* CreateCircleCollider(int x, int y, size_t r)
 	cCol->x = x;
 	cCol->y = y;
 	return cCol;
+}
+void GetCollisionStates(CollidersArray* colArr)
+{
+
 }

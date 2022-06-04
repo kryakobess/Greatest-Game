@@ -30,10 +30,12 @@ typedef struct CircleCollider
 
 typedef struct CollidersArray
 {
+	size_t maxIDcount;
 	bool** collisionMatrix;
 	size_t* collidersMemCount;
 	size_t* collidersCount;
 	Collider** colliders;
+	bool** outCollisionMatrix;
 }CollidersArray;
 
 bool InitCollidersArray(CollidersArray* colArr);
@@ -41,6 +43,6 @@ bool AddColliderInArray(CollidersArray* colArr, Collider* col);
 Collider* CreateCollider(void* col, ColliderType colType, size_t id);
 BoxCollider* CreateBoxCollider(SDL_Rect rect);
 CircleCollider* CreateCircleCollider(int x, int y, size_t r);
-
+void GetCollisionStates(CollidersArray* colArr);
 
 #endif
