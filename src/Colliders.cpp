@@ -2,6 +2,7 @@
 
 bool InitCollidersArray(CollidersArray* colArr, size_t maxIDcount)
 {
+	if ((colArr = (CollidersArray*)calloc(1, sizeof(CollidersArray))) == NULL) return false;
 	colArr->maxIDcount = maxIDcount;
 	for (int id = 0; id < maxIDcount; id++)
 	{
