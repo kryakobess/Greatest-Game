@@ -140,7 +140,7 @@ void GetCollisionStates(CollidersArray* colArr)
 				{
 					for (int j = 0; j < colArr->collidersCount[id2]; j++)
 					{
-						if (!((id == id2) && (i == j)))
+						if ((!((id == id2) && (i == j))) && (colArr->colliders[id][i].active) && (colArr->colliders[id2][j].active))
 						{
 							if (Collision(&colArr->colliders[id][i], &colArr->colliders[id2][j]))
 							{
