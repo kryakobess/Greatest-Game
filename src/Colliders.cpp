@@ -44,14 +44,14 @@ BoxCollider* CreateBoxCollider(SDL_Rect rect)
 	bCol->rect.h = rect.h;
 	return bCol;
 }
-CircleCollider* CreateCircleCollider(int x, int y, size_t r)
-{
-	CircleCollider* cCol = (CircleCollider*)calloc(1, sizeof(CircleCollider));
-	cCol->r = r;
-	cCol->x = x;
-	cCol->y = y;
-	return cCol;
-}
+//CircleCollider* CreateCircleCollider(int x, int y, size_t r)
+//{
+//	CircleCollider* cCol = (CircleCollider*)calloc(1, sizeof(CircleCollider));
+//	cCol->r = r;
+//	cCol->x = x;
+//	cCol->y = y;
+//	return cCol;
+//}
 
 bool CheckBoxes(SDL_Rect* a, SDL_Rect* b)
 {
