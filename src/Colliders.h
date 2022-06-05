@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include <math.h>
+#include <stdio.h>
 
 typedef enum ColliderType
 {

@@ -4,6 +4,7 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 Mix_Music* gMusic = NULL;
 Mix_Chunk* gMove = NULL;
+CollidersArray* gCollidersArray = NULL;
 Matrix gMatrix;
 SDL_Rect gSpriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
 SDL_Texture* gSpriteTexture = NULL;
@@ -65,18 +66,27 @@ bool InitializeGameData(enum DataType dataType)
 	}
 	else if (loadMedia())
 	{
+		if (!InitCollidersArray(&gCollidersArray, MAX_COUNT_COLLIDERS_ID)) return false;
+		for (int i = 0; i < MAX_COUNT_COLLIDERS_ID; i++)
+		{
+			for (int j = 0; j < MAX_COUNT_COLLIDERS_ID; j++)
+			{
+				gCollidersArray->collisionMatrix[i][j] = true;
+			}
+		}
 		if(!InitCreateLabirint(&gMatrix)) return false;
-		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 0 })) return false;
-		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 })) return false;
-		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 })) return false;
-
+		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
+		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
+		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		for (int i = 0; i < playersCount; ++i) {
 			players[i] = (character*)malloc(sizeof(character));
 		}
 		if (!characterInit(players[LocalPlayer], gSpriteTexture, { WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25 },
-			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w })) return false;
+			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
-		{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, { 0,0,600,600 }, {0}, ActivateTrap)) return false;
+		{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, { 0,0,600,600 }, 
+			{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
+		
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
 				players[LocalPlayer]->spriteClips[i][j] = gSpriteClips[i][j];
@@ -127,7 +137,7 @@ bool HandleInput(SDL_Event e, double velCoef) {
 		}
 	}
 	const Uint8* movement = SDL_GetKeyboardState(NULL);
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef);
+	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray);
 	return true;
 }
 
