@@ -2,11 +2,12 @@
 #define COLLIDERS
 
 #include <SDL.h>
+#include <math.h>
 
 typedef enum ColliderType
 {
 	BOX,
-	CIRCLE,
+	/*CIRCLE,*/
 	COUNT_COLLIDER_TYPES
 }ColliderType;
 
@@ -22,11 +23,11 @@ typedef struct BoxCollider
 	SDL_Rect rect;
 }BoxCollider;
 
-typedef struct CircleCollider
-{
-	int x, y;
-	size_t r;
-}CircleCollider;
+//typedef struct CircleCollider
+//{
+//	int x, y;
+//	size_t r;
+//}CircleCollider;
 
 typedef struct CollidersArray
 {
@@ -42,7 +43,7 @@ bool InitCollidersArray(CollidersArray* colArr);
 bool AddColliderInArray(CollidersArray* colArr, Collider* col);
 Collider* CreateCollider(void* col, ColliderType colType, size_t id);
 BoxCollider* CreateBoxCollider(SDL_Rect rect);
-CircleCollider* CreateCircleCollider(int x, int y, size_t r);
+//CircleCollider* CreateCircleCollider(int x, int y, size_t r);
 void GetCollisionStates(CollidersArray* colArr);
 
 #endif
