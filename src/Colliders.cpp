@@ -1,17 +1,23 @@
 #include "Colliders.h"
 
-bool InitCollidersArray(CollidersArray* colArr, size_t maxIDcount)
+bool InitCollidersArray(CollidersArray** colArr, size_t maxIDcount)
 {
-	if ((colArr = (CollidersArray*)calloc(1, sizeof(CollidersArray))) == NULL) return false;
-	colArr->maxIDcount = maxIDcount;
+	if ((*colArr = (CollidersArray*)calloc(1, sizeof(CollidersArray))) == NULL) return false;
+	(*colArr)->maxIDcount = maxIDcount;
+	if (((*colArr)->colliders = (Collider**)calloc(maxIDcount, sizeof(Collider*))) == NULL)return false;
+	if (((*colArr)->collisionMatrix = (bool**)calloc(maxIDcount, sizeof(bool*))) == NULL)return false;
+	if (((*colArr)->outCollisionMatrix = (bool**)calloc(maxIDcount, sizeof(bool*))) == NULL)return false;
+	if (((*colArr)->collidersCount = (size_t*)calloc(maxIDcount, sizeof(size_t))) == NULL) return false;
+	if (((*colArr)->collidersMemCount = (size_t*)calloc(maxIDcount, sizeof(size_t))) == NULL) return false;
+
 	for (int id = 0; id < maxIDcount; id++)
 	{
-		colArr->collidersCount[id] = 0;
-		colArr->collidersMemCount[id] = 1;
-		if ((colArr->colliders[id] = (Collider*)calloc(1, sizeof(Collider))) == NULL) return false;
-		if ((colArr->collisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
-		for (int id2 = 0; id2 < maxIDcount; id2++) colArr->collisionMatrix[id][id2] = false;
-		if ((colArr->outCollisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
+		if (((*colArr)->colliders[id] = (Collider*)calloc(1, sizeof(Collider))) == NULL) return false;
+		if (((*colArr)->collisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
+		for (int id2 = 0; id2 < maxIDcount; id2++) (*colArr)->collisionMatrix[id][id2] = false;
+		if (((*colArr)->outCollisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
+		(*colArr)->collidersCount[id] = 0;
+		(*colArr)->collidersMemCount[id] = 1;
 	}
 	return true;
 }
