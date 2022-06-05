@@ -13,6 +13,7 @@ typedef enum ColliderType
 
 typedef struct Collider
 {
+	bool active;
 	void* collider;
 	ColliderType colliderType;
 	size_t id;

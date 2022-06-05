@@ -23,6 +23,7 @@ bool InitCollidersArray(CollidersArray** colArr, size_t maxIDcount)
 }
 bool AddColliderInArray(CollidersArray* colArr, Collider* col)
 {
+	col->active = true;
 	if ((col == NULL) || (col->collider == NULL)) return false;
 	if (colArr->collidersMemCount[col->id] <= colArr->collidersCount[col->id])
 	{
