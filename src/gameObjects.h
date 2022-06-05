@@ -56,14 +56,17 @@ bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Re
 void ObjFree(gameObj* obj);
 void RenderObject(gameObj* obj, SDL_Renderer* renderer);
 
+//Functions for Items (Traps and Swords)
+
 bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, void(*func)(gameItem*, int, SDL_Rect*));
 void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect);
 void ActivateSword(gameItem* sword, int spriteNumber, SDL_Rect* posRect);
 void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int spriteDirect);
 
+//Character functions
+
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera);
 void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef);
-void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift);
 bool CheckAllCollisions(character* c, gameObj* objs[], int objCount, int flag);
 
 #endif // !anObject

@@ -3,7 +3,9 @@
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 Mix_Music* gMusic = NULL;
-Mix_Chunk* gMove = NULL;
+Mix_Chunk* gMoveChunk = NULL;
+Mix_Chunk* gRunChunk = NULL;
+Mix_Chunk* gSwordAttackChunk = NULL;
 SDL_Rect gSpriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
 SDL_Texture* gSpriteTexture = NULL;
 SDL_Texture* gBackground = NULL;
@@ -46,6 +48,17 @@ bool loadMedia()
 		printf("Soundtrack error!\n");
 		success = false;
 	}
+	gMoveChunk = Mix_LoadWAV("step2.wav");
+	if (gMoveChunk == NULL) {
+		printf("move chunk error!  SDL_mixer Error: %s\n", Mix_GetError());
+		success = false;
+	}
+	gSwordAttackChunk = Mix_LoadWAV("sword_attack.wav");
+	if (gSwordAttackChunk == NULL) {
+		printf("attack chunk error!\n");
+		success = false;
+	}
+	Mix_VolumeChunk(gSwordAttackChunk, 30);
 	return success;
 }
 
@@ -123,6 +136,7 @@ bool HandleInput(SDL_Event e, double velCoef) {
 	if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
 		if (players[LocalPlayer]->hasSword && (Timer_GetTicks(&players[LocalPlayer]->sword.delay) >= 1000) && e.button.state == SDL_PRESSED) {
 			players[LocalPlayer]->sword.ItemFunc(&players[LocalPlayer]->sword, players[LocalPlayer]->spriteNumber[0], players[LocalPlayer]->model.posRect);
+			Mix_PlayChannel(1, gSwordAttackChunk, 0);
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;

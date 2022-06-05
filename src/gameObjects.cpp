@@ -43,7 +43,7 @@ void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect) {
 	}
 	else {
 		trap->isActive = false;
-		trap->itemModel.collisionBox = {0};
+		trap->itemModel.collisionBox = NULL;
 		trap->itemModel.posRect->x = posRect->x;
 		trap->itemModel.posRect->y = posRect->y;
 	}
@@ -126,7 +126,6 @@ void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int sprite
 			srcRect = { 30, 0, 30,30 };
 		}
 		SDL_RenderCopyEx(gRenderer, sword->itemModel.texture, &srcRect, sword->itemModel.posRect, degree, NULL, flip);
-		SDL_RenderDrawRect(gRenderer, sword->itemModel.posRect);
 		if (Timer_GetTicks(&sword->delay) >= 300) {
 			sword->itemModel.collisionBox = NULL;
 			sword->isActive = false;
