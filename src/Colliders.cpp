@@ -148,3 +148,19 @@ void GetCollisionStates(CollidersArray* colArr)
 		}
 	}
 }
+
+void FreeCollidersArray(CollidersArray* colArr)
+{
+	for (int id = 0; id < colArr->maxIDcount; id++)
+	{
+		free(colArr->collisionMatrix[id]);
+		free(colArr->colliders[id]);
+		free(colArr->outCollisionMatrix[id]);
+	}
+	free(colArr->collisionMatrix);
+	free(colArr->colliders);
+	free(colArr->outCollisionMatrix);
+
+	free(colArr->collidersMemCount);
+	free(colArr->collidersCount);
+}
