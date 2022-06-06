@@ -12,44 +12,38 @@ bool InitCollidersArray(CollidersArray** colArr, size_t maxIDcount)
 
 	for (int id = 0; id < maxIDcount; id++)
 	{
-		if (((*colArr)->colliders[id] = (Collider*)calloc(10, sizeof(Collider))) == NULL) return false;
+		if (((*colArr)->colliders[id] = (Collider*)calloc(1, sizeof(Collider))) == NULL) return false;
 		if (((*colArr)->collisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
 		for (int id2 = 0; id2 < maxIDcount; id2++) (*colArr)->collisionMatrix[id][id2] = false;
 		if (((*colArr)->outCollisionMatrix[id] = (bool*)calloc(maxIDcount, sizeof(bool))) == NULL) return false;
 		(*colArr)->collidersCount[id] = 0;
-		(*colArr)->collidersMemCount[id] = 10;
+		(*colArr)->collidersMemCount[id] = 1;
 	}
 	return true;
 }
 
-//bool ReallocColliders(CollidersArray* colArr, Collider* col)
-//{
-//
-//}
+bool ReallocColliders(CollidersArray* colArr, Collider* col)
+{
+	Collider* ptr = (Collider*)calloc(colArr->collidersMemCount[col->id] * 2 + 1, sizeof(Collider));
+	if (ptr == NULL) return false;
+	for (int i = 0; i < colArr->collidersCount[col->id]; i++)
+	{
+		ptr[i].active = colArr->colliders[col->id][i].active;
+		ptr[i].collider = colArr->colliders[col->id][i].collider;
+		ptr[i].colliderType = colArr->colliders[col->id][i].colliderType;
+		ptr[i].id = colArr->colliders[col->id][i].id;
+	}
+	free(colArr->colliders[col->id]);
+	colArr->colliders[col->id] = ptr;
+	colArr->collidersMemCount[col->id] = colArr->collidersMemCount[col->id] * 2 + 1;
+	return true;
+}
 
 bool AddColliderInArray(CollidersArray* colArr, Collider* col)
 {
 	if ((col == NULL) || (col->collider == NULL)) return false;
 	if (colArr->collidersMemCount[col->id] <= colArr->collidersCount[col->id])
-	{
-		if ((colArr->colliders[col->id] = (Collider*)realloc(colArr->colliders[col->id], colArr->collidersMemCount[col->id] * 2 + 1)) == NULL) return false;
-		colArr->collidersMemCount[col->id] = colArr->collidersMemCount[col->id] * 2 + 1;
-		
-		printf("Error Memory with ID\n");
-		return false;
-		/*for (int id = 0; id < colArr->maxIDcount; id++)
-		{
-			printf("\n{Colliders count with ID=%d} = %d:\n", id, colArr->collidersCount[id]);
-			for (int i = 0; i < colArr->collidersCount[id]; i++)
-			{
-				printf("{%d,%d,%d,%d} active=%d\n", ((BoxCollider*)colArr->colliders[id][i].collider)->rect.x, ((BoxCollider*)colArr->colliders[id][i].collider)->rect.y,
-					((BoxCollider*)colArr->colliders[id][i].collider)->rect.w, ((BoxCollider*)colArr->colliders[id][i].collider)->rect.h,
-					colArr->colliders[id][i].active);
-				printf("ColType = %d\n", (ColliderType)colArr->colliders[id][i].colliderType);
-			}
-		}
-		printf("\n\n\n");*/
-	}
+		ReallocColliders(colArr, col);
 	colArr->colliders[col->id][colArr->collidersCount[col->id]].collider = col->collider;
 	colArr->colliders[col->id][colArr->collidersCount[col->id]].colliderType = col->colliderType;
 	colArr->colliders[col->id][colArr->collidersCount[col->id]].id = col->id;
