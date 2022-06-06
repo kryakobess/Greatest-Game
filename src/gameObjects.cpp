@@ -161,23 +161,23 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
 	if (currentKeyStates[SDL_SCANCODE_W]) {
-		if (c[LocalPlayer]->camera->y > 0 && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->y > 0) yPosShift -= VELOCITY;
+		/*if (c[LocalPlayer]->camera->y > 0 && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2) <= 10)) */yShift -= VELOCITY;
+		/*else if (c[LocalPlayer]->model.posRect->y > 0) yPosShift -= VELOCITY;*/
 		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_UP; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_S]) {
-		if (c[LocalPlayer]->camera->y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2 )<= 10)) yShift += VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->y < HEIGHT_w - c[LocalPlayer]->model.posRect->h) yPosShift += VELOCITY;
+		/*if (c[LocalPlayer]->camera->y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2 )<= 10)) */yShift += VELOCITY;
+		/*else if (c[LocalPlayer]->model.posRect->y < HEIGHT_w - c[LocalPlayer]->model.posRect->h) yPosShift += VELOCITY;*/
 		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
-		if (c[LocalPlayer]->camera->x > 0 && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->x > 0) xPosShift -= VELOCITY;
+		/*if (c[LocalPlayer]->camera->x > 0 && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) */xShift -= VELOCITY;
+		/*else if (c[LocalPlayer]->model.posRect->x > 0) xPosShift -= VELOCITY;*/
 		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_LEFT; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_D]) {
-		if (c[LocalPlayer]->camera->x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->x < WIDTH_w - c[LocalPlayer]->model.posRect->w) xPosShift += VELOCITY;
+		/*if (c[LocalPlayer]->camera->x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) */xShift += VELOCITY;
+		/*else if (c[LocalPlayer]->model.posRect->x < WIDTH_w - c[LocalPlayer]->model.posRect->w) xPosShift += VELOCITY;*/
 		c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_RIGHT; c[LocalPlayer]->spriteNumber[1]++;
 	}
 	if (currentKeyStates[SDL_SCANCODE_E]) {

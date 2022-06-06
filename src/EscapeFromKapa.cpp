@@ -141,10 +141,10 @@ bool HandleInput(SDL_Event e, double velCoef) {
 	}
 	const Uint8* movement = SDL_GetKeyboardState(NULL);
 	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix);
-	printf("TRAP: x = %d y = %d w = %d h = %d\n", ((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.x,
+	/*printf("TRAP: x = %d y = %d w = %d h = %d\n", ((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.x,
 		((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.y,
 		((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.w,
-		((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.h);
+		((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.h);*/
 	return true;
 }
 
