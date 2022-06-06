@@ -56,7 +56,7 @@ bool AddColliderInArray(CollidersArray* colArr, Collider* col);
 Collider* CreateCollider(void* col, ColliderType colType, size_t id);
 BoxCollider* CreateBoxCollider(SDL_Rect rect);
 //CircleCollider* CreateCircleCollider(int x, int y, size_t r);
-void GetCollisionStates(CollidersArray* colArr);
+void GetCollisionStates(CollidersArray* colArr, SDL_Rect* camera);
 void FreeCollidersArray(CollidersArray* colArr);
 
 #endif

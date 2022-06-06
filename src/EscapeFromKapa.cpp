@@ -67,13 +67,7 @@ bool InitializeGameData(enum DataType dataType)
 	else if (loadMedia())
 	{
 		if (!InitCollidersArray(&gCollidersArray, MAX_COUNT_COLLIDERS_ID)) return false;
-		for (int i = 0; i < MAX_COUNT_COLLIDERS_ID; i++)
-		{
-			for (int j = 0; j < MAX_COUNT_COLLIDERS_ID; j++)
-			{
-				gCollidersArray->collisionMatrix[i][j] = true;
-			}
-		}
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] = true;
 		if(!InitCreateLabirint(&gMatrix)) return false;
 		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
@@ -137,7 +131,7 @@ bool HandleInput(SDL_Event e, double velCoef) {
 		}
 	}
 	const Uint8* movement = SDL_GetKeyboardState(NULL);
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray);
+	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, players[LocalPlayer]->camera);
 	return true;
 }
 

@@ -146,20 +146,8 @@ bool Collision(Collider* col1, Collider* col2)
 	return false;
 }
 
-void GetCollisionStates(CollidersArray* colArr)
+void GetCollisionStates(CollidersArray* colArr, SDL_Rect* camera)
 {
-	/*for (int id = 0; id < colArr->maxIDcount; id++)
-	{
-		printf("\n{Colliders count with ID=%d} = %d:\n", id, colArr->collidersCount[id]);
-		for (int i = 0; i < colArr->collidersCount[id]; i++)
-		{
-			printf("{%d,%d,%d,%d} active=%d\n", ((BoxCollider*)colArr->colliders[id][i].collider)->rect.x, ((BoxCollider*)colArr->colliders[id][i].collider)->rect.y,
-				((BoxCollider*)colArr->colliders[id][i].collider)->rect.w, ((BoxCollider*)colArr->colliders[id][i].collider)->rect.h,
-				colArr->colliders[id][i].active);
-			printf("ColType = %d\n", (ColliderType)colArr->colliders[id][i].colliderType);
-		}
-	}*/
-
 	bool collision;
 	for (int id = 0; id < colArr->maxIDcount; id++)
 	{
@@ -174,11 +162,15 @@ void GetCollisionStates(CollidersArray* colArr)
 					{
 						if ((!((id == id2) && (i == j))) && (colArr->colliders[id][i].active) && (colArr->colliders[id2][j].active))
 						{
-							if (Collision(&colArr->colliders[id][i], &colArr->colliders[id2][j]))
+							if (CheckBoxes(camera, &((BoxCollider*)colArr->colliders[id][i].collider)->rect) &&
+								CheckBoxes(camera, &((BoxCollider*)colArr->colliders[id2][j].collider)->rect))
 							{
-								collision = true;
-								colArr->outCollisionMatrix[id][id2] = colArr->outCollisionMatrix[id2][id] = true;
-								break;
+								if (Collision(&colArr->colliders[id][i], &colArr->colliders[id2][j]))
+								{
+									collision = true;
+									colArr->outCollisionMatrix[id][id2] = colArr->outCollisionMatrix[id2][id] = true;
+									break;
+								}
 							}
 						}
 					}

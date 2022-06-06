@@ -44,11 +44,11 @@ void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect posRect) {
 	}
 }
 
-void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray* colArr) {
+void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray* colArr, SDL_Rect* camera) {
 	for (int i = 0; i < pCount; ++i) {
 		players[i]->trap.ItemFunc(&players[i]->trap, false, *players[i]->model.posRect);
 		
-		GetCollisionStates(colArr);
+		GetCollisionStates(colArr, camera);
 		if (colArr->outCollisionMatrix[PLAYER_COL_ID][TRAP_COL_ID]&& players[i]->trap.isActive)
 		{
 			printf("Collision PLAYER WITH SPIKE\n");
@@ -146,14 +146,14 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	c->camera->x += xShift; c->camera->y += yShift;
 }
 
-void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr)
+void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, SDL_Rect* camera)
 {
 	if (c[LocalPlayer]->stamina < 100) {
 		c[LocalPlayer]->stamina += 0.5;
 		if (c[LocalPlayer]->stamina >= 100) c[LocalPlayer]->canRun = true;
 	}
 	c[LocalPlayer]->VelCoef = velCoef;
-	ReleaseSpikes(c, playersCount, velCoef, colArr);
+	ReleaseSpikes(c, playersCount, velCoef, colArr, camera);
 
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
@@ -193,7 +193,7 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	SaveObjPosition(objs, objCount, yShift, xShift);
 	SavePlayersPosition(c, playersCount, yShift , xShift);
 
-	GetCollisionStates(colArr);
+	GetCollisionStates(colArr, camera);
 	for (int id = 0; id < colArr->maxIDcount; id++)
 	{
 		for (int id2 = 0; id2 < colArr->maxIDcount; id2++)
