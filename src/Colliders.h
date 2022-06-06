@@ -5,6 +5,16 @@
 #include <math.h>
 #include <stdio.h>
 
+enum ColliderID
+{
+	PLAYER_BODY_COL_ID,
+	PLAYER_COL_ID,
+	WALL_COL_ID,
+	ROCK_COL_ID,
+	TRAP_COL_ID,
+	MAX_COUNT_COLLIDERS_ID
+};
+
 typedef enum ColliderType
 {
 	BOX,
