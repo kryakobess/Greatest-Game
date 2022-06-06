@@ -1,9 +1,9 @@
 #ifndef anObject
 #define anObject
 
-#include "EscapeFromKapa.h"
 #include "GameEnv.h"
 #include "Colliders.h"
+#include "gameMap.h"
 
 #define SPRITE_NUMBER 4
 #define VELOCITY 3
@@ -60,7 +60,7 @@ bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg,
 void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect);
 
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera, CollidersArray* colArr);
-void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, SDL_Rect* camera);
+void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, SDL_Rect* camera, Matrix* matrix);
 void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift);
 
 #endif // !anObject

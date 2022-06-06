@@ -75,7 +75,8 @@ bool InitializeGameData(enum DataType dataType)
 			}
 		}
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID]
-			= gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID] = true;
+			= gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID]
+			= gCollidersArray->outCollisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] = true;
 
 		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
 		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
@@ -140,7 +141,7 @@ bool HandleInput(SDL_Event e, double velCoef) {
 		}
 	}
 	const Uint8* movement = SDL_GetKeyboardState(NULL);
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, players[LocalPlayer]->camera);
+	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, players[LocalPlayer]->camera, &gMatrix);
 	return true;
 }
 

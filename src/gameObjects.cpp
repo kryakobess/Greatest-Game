@@ -146,7 +146,7 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	c->camera->x += xShift; c->camera->y += yShift;
 }
 
-void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, SDL_Rect* camera)
+void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, SDL_Rect* camera, Matrix* matrix)
 {
 	if (c[LocalPlayer]->stamina < 100) {
 		c[LocalPlayer]->stamina += 0.5;
@@ -194,15 +194,20 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	SavePlayersPosition(c, playersCount, yShift , xShift);
 
 	GetCollisionStates(colArr, camera);
-	for (int id = 0; id < colArr->maxIDcount; id++)
-	{
-		for (int id2 = 0; id2 < colArr->maxIDcount; id2++)
-		{
-			printf("%d", colArr->outCollisionMatrix[id][id2]);
-		}
-		printf("\n");
-	}
-	printf("\n\n\n");
+	printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
+	//Shift box Colliders
+	for (int i = 0; i < matrix->countCol; i++)
+		for (int j = 0; j < matrix->countRow; j++)
+			if (isCollided(*camera, matrix->tileArray[i][j].tileBox))
+			{
+				if (matrix->tileArray[i][j].collider->active)
+				{
+					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - camera->x,
+					matrix->tileArray[i][j].tileBox.y - camera->y,
+					matrix->tileArray[i][j].tileBox.w,
+					matrix->tileArray[i][j].tileBox.h };
+				}
+			}
 	
 	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID]||colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID]) {
 		if (c[LocalPlayer]->model.posRect->x != WIDTH_w / 2 || c[LocalPlayer]->model.posRect->y != HEIGHT_w / 2) {

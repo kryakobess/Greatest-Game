@@ -162,16 +162,16 @@ void GetCollisionStates(CollidersArray* colArr, SDL_Rect* camera)
 					{
 						if ((!((id == id2) && (i == j))) && (colArr->colliders[id][i].active) && (colArr->colliders[id2][j].active))
 						{
-							if (CheckBoxes(camera, &((BoxCollider*)colArr->colliders[id][i].collider)->rect) &&
+							/*if (CheckBoxes(camera, &((BoxCollider*)colArr->colliders[id][i].collider)->rect) &&
 								CheckBoxes(camera, &((BoxCollider*)colArr->colliders[id2][j].collider)->rect))
-							{
+							{*/
 								if (Collision(&colArr->colliders[id][i], &colArr->colliders[id2][j]))
 								{
 									collision = true;
 									colArr->outCollisionMatrix[id][id2] = colArr->outCollisionMatrix[id2][id] = true;
 									break;
 								}
-							}
+							//}
 						}
 					}
 					if (collision) break;

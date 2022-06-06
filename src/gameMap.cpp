@@ -12,13 +12,6 @@ void DrawLabirint(SDL_Renderer* render, SDL_Rect* camera, Matrix* matrix)
 					matrix->tileArray[i][j].tileBox.h};
 				SDL_RenderCopy(render, matrix->gTileTexture,
 					&matrix->gTileClips[matrix->tileArray[i][j].tileType], &rect);
-				if (matrix->tileArray[i][j].collider->active)
-				{
-					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - camera->x,
-					matrix->tileArray[i][j].tileBox.y - camera->y,
-					matrix->tileArray[i][j].tileBox.w,
-					matrix->tileArray[i][j].tileBox.h };
-				}
 			}
 }
 
@@ -186,6 +179,9 @@ bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 	int r = rand() % 20;
 	matrix->countCol = r * 2 + 61;
 	matrix->countRow = r * 2 + 41;
+
+	matrix->countCol = 11;
+	matrix->countRow = 11;
 
 	printf("Labirint with Col:%u and Row:%u\n", matrix->countCol, matrix->countRow);
 	size_t** matr = NULL;

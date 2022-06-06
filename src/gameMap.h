@@ -1,3 +1,6 @@
+#ifndef GAME_MAP
+#define GAME_MAP
+
 #include <SDL.h>
 #include "GameEnv.h"
 #include <time.h>
@@ -50,3 +53,5 @@ typedef struct Matrix
 void DrawLabirint(SDL_Renderer* render, SDL_Rect* camera, Matrix* matrix);
 bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr);
 bool InitLabirintMatrix(Matrix* matrix);
+
+#endif // !GAME_MAP
