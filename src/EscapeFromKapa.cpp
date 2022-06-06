@@ -74,10 +74,9 @@ bool InitializeGameData(enum DataType dataType)
 				gCollidersArray->collisionMatrix[i][j] = false;
 			}
 		}
-		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID]
-			= gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID]
-			= gCollidersArray->outCollisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] = true;
-
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] = true;
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID] = true;
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] = true;
 		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
 		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
@@ -141,7 +140,11 @@ bool HandleInput(SDL_Event e, double velCoef) {
 		}
 	}
 	const Uint8* movement = SDL_GetKeyboardState(NULL);
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, players[LocalPlayer]->camera, &gMatrix);
+	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix);
+	printf("TRAP: x = %d y = %d w = %d h = %d\n", ((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.x,
+		((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.y,
+		((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.w,
+		((BoxCollider*)(players[LocalPlayer]->trap.itemModel.body->collider))->rect.h);
 	return true;
 }
 

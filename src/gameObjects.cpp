@@ -21,6 +21,7 @@ bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg,
 {
 	if (!initGameObject(&i->itemModel, t, posCfg, srcCfg, cBox, colArr, ID)) return false;
 	i->ItemFunc = func;
+	i->itemModel.body->active = false;
 	Timer_Init(&i->delay);
 	Timer_Start(&i->delay);
 	i->isActive = false;
@@ -33,12 +34,14 @@ void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect posRect) {
 	}
 	else if (keyFlag && Timer_GetTicks(&trap->delay) >= 1000) {
  		trap->isActive = true;
+		trap->itemModel.body->active = true;
 		Timer_Start(&trap->delay);
 		trap->itemModel.posRect->x = posRect.x;
 		trap->itemModel.posRect->y = posRect.y;
 	}
 	else {
 		trap->isActive = false;
+		trap->itemModel.body->active = false;
 		trap->itemModel.posRect->x = posRect.x;
 		trap->itemModel.posRect->y = posRect.y;
 	}
@@ -46,20 +49,19 @@ void ActivateTrap(gameItem* trap, bool keyFlag, SDL_Rect posRect) {
 
 void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray* colArr, SDL_Rect* camera) {
 	for (int i = 0; i < pCount; ++i) {
-		players[i]->trap.ItemFunc(&players[i]->trap, false, *players[i]->model.posRect);
-		
-		GetCollisionStates(colArr, camera);
-		if (colArr->outCollisionMatrix[PLAYER_COL_ID][TRAP_COL_ID]&& players[i]->trap.isActive)
-		{
-			printf("Collision PLAYER WITH SPIKE\n");
-			players[LocalPlayer]->VelCoef *= 0.35;
-			break;
+		if (players[i]->trap.isActive) {
+			players[i]->trap.ItemFunc(&players[i]->trap, false, *players[i]->model.posRect);
+			if (colArr->outCollisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] && players[i]->trap.itemModel.body->active)
+			{
+				printf("Collision PLAYER WITH SPIKE\n");
+				players[LocalPlayer]->VelCoef *= 0.35;
+				break;
+			}
+			else
+			{
+				players[LocalPlayer]->VelCoef = velCoef;
+			}
 		}
-		else
-		{
-			players[LocalPlayer]->VelCoef = velCoef;
-		}
-		
 	}
 }
 
@@ -146,14 +148,14 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	c->camera->x += xShift; c->camera->y += yShift;
 }
 
-void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, SDL_Rect* camera, Matrix* matrix)
+void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix)
 {
 	if (c[LocalPlayer]->stamina < 100) {
 		c[LocalPlayer]->stamina += 0.5;
 		if (c[LocalPlayer]->stamina >= 100) c[LocalPlayer]->canRun = true;
 	}
 	c[LocalPlayer]->VelCoef = velCoef;
-	ReleaseSpikes(c, playersCount, velCoef, colArr, camera);
+	ReleaseSpikes(c, playersCount, velCoef, colArr, c[LocalPlayer]->camera);
 
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
@@ -192,31 +194,25 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	moveCharacter(c[LocalPlayer], xShift, yShift, xPosShift, yPosShift);
 	SaveObjPosition(objs, objCount, yShift, xShift);
 	SavePlayersPosition(c, playersCount, yShift , xShift);
-
-	GetCollisionStates(colArr, camera);
-	printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
+	//printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
 	//Shift box Colliders
+	GetCollisionStates(colArr, c[LocalPlayer]->camera);
 	for (int i = 0; i < matrix->countCol; i++)
 		for (int j = 0; j < matrix->countRow; j++)
-			if (isCollided(*camera, matrix->tileArray[i][j].tileBox))
+			if (isCollided(*c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
 			{
 				if (matrix->tileArray[i][j].collider->active)
 				{
-					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - camera->x,
-					matrix->tileArray[i][j].tileBox.y - camera->y,
+					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera->x,
+					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera->y,
 					matrix->tileArray[i][j].tileBox.w,
 					matrix->tileArray[i][j].tileBox.h };
 				}
 			}
 	
-	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID]||colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID]) {
-		if (c[LocalPlayer]->model.posRect->x != WIDTH_w / 2 || c[LocalPlayer]->model.posRect->y != HEIGHT_w / 2) {
-			moveCharacter(c[LocalPlayer], 0, 0, -xPosShift, -yPosShift);
-		}
-		if ((abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10 || abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2) <= 10)) {
-			moveCharacter(c[LocalPlayer], -xShift, -yShift, 0, 0);
-			SavePlayersPosition(c, playersCount, -yShift, -xShift);
-			SaveObjPosition(objs, objCount, -yShift, -xShift);
-		}
+	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID]) {
+		moveCharacter(c[LocalPlayer], -xShift, -yShift, -xPosShift, -yPosShift);
+		SavePlayersPosition(c, playersCount, -yShift, -xShift);
+		SaveObjPosition(objs, objCount, -yShift, -xShift);
 	}
 }
