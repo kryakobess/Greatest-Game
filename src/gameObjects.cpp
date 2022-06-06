@@ -35,7 +35,7 @@ void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect) {
  	if (trap->isActive && Timer_GetTicks(&trap->delay) <= 10000) {
 		trap->itemModel.collisionBox = trap->itemModel.posRect;
 	}
-	else if (keyFlag && Timer_GetTicks(&trap->delay) >= 1000) {
+	else if (keyFlag && Timer_GetTicks(&trap->delay) >= 20000) {
  		trap->isActive = true;
 		Timer_Start(&trap->delay);
 		trap->itemModel.posRect->x = posRect->x;
@@ -51,17 +51,19 @@ void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect) {
 
 void ReleaseSpikes(character* players[], int pCount, int velCoef) {
 	for (int i = 0; i < pCount; ++i) {
-		players[i]->trap.ItemFunc(&players[i]->trap, false, players[i]->model.posRect);
-		if (players[i]->trap.itemModel.collisionBox != NULL) {
-			if (isCollided(*players[LocalPlayer]->model.collisionBox, *players[i]->trap.itemModel.collisionBox)) {
-				players[LocalPlayer]->VelCoef *= 0.35;
-				break;
+		if (players[i]->trap.isActive) {
+			players[i]->trap.ItemFunc(&players[i]->trap, false, players[i]->model.posRect);
+			if (players[i]->trap.itemModel.collisionBox != NULL) {
+				if (isCollided(*players[LocalPlayer]->model.collisionBox, *players[i]->trap.itemModel.collisionBox)) {
+					players[LocalPlayer]->VelCoef *= 0.35;
+					break;
+				}
+				else {
+					players[LocalPlayer]->VelCoef = velCoef;
+				}
 			}
-			else {
-				players[LocalPlayer]->VelCoef = velCoef;
-			}
+			else players[LocalPlayer]->VelCoef = velCoef;
 		}
-		else players[LocalPlayer]->VelCoef = velCoef;
 	}
 }
 
@@ -146,6 +148,7 @@ bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SD
 	c->trap = { 0 };
 	c->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c->spriteNumber[1] = 0;
 	c->stamina = 100;
+	c->HP = 100;
 	c->canRun = true;
 	return true;
 }

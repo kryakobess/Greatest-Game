@@ -48,6 +48,7 @@ typedef struct character {
 	bool hasSword;
 	bool canRun;
 	double stamina;
+	int HP;
 	double VelCoef;
 }character;
 

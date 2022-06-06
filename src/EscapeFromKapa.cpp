@@ -123,11 +123,22 @@ void Drawing() {
 			RenderObject(&players[i]->model, gRenderer);
 		}
 	}
+	SDL_Rect staminaLine = { 10,40, 300, 20 };
+	SDL_Rect hpLine = { 10, 10, 300, 20 };
+	SDL_SetRenderDrawColor(gRenderer, 0xA0, 0xA0, 0xA0, 0x00);
+	SDL_RenderFillRect(gRenderer, &hpLine);
+	SDL_RenderFillRect(gRenderer, &staminaLine);
+	hpLine.w = players[LocalPlayer]->HP * 3;
+	staminaLine.w = players[LocalPlayer]->stamina * 3;
+	SDL_SetRenderDrawColor(gRenderer, 0x0A, 0xFB, 0x80, 0xFF);
+	SDL_RenderFillRect(gRenderer, &staminaLine);
+	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x55, 0x00, 0xFF);
+	SDL_RenderFillRect(gRenderer, &hpLine);
 	RenderObject(&rockUp, gRenderer);
 	SDL_RenderPresent(gRenderer);
 }
 
-bool HandleInput(SDL_Event e, double velCoef) {
+bool HandleInput(SDL_Event e, double velCoef ) {
 	SDL_PollEvent(&e);
 	if (e.type == SDL_QUIT) {
 			return false;
@@ -135,8 +146,12 @@ bool HandleInput(SDL_Event e, double velCoef) {
 	const Uint8* movement = SDL_GetKeyboardState(NULL);
 	if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
 		if (players[LocalPlayer]->hasSword && (Timer_GetTicks(&players[LocalPlayer]->sword.delay) >= 1000) && e.button.state == SDL_PRESSED) {
-			players[LocalPlayer]->sword.ItemFunc(&players[LocalPlayer]->sword, players[LocalPlayer]->spriteNumber[0], players[LocalPlayer]->model.posRect);
-			Mix_PlayChannel(1, gSwordAttackChunk, 0);
+			if (players[LocalPlayer]->canRun && players[LocalPlayer]->stamina > 40) {
+				players[LocalPlayer]->sword.ItemFunc(&players[LocalPlayer]->sword, players[LocalPlayer]->spriteNumber[0], players[LocalPlayer]->model.posRect);
+				Mix_PlayChannel(1, gSwordAttackChunk, 0);
+				players[LocalPlayer]->stamina -= 40;
+				if (players[LocalPlayer]->stamina < 10) players[LocalPlayer]->canRun = false;
+			}
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
