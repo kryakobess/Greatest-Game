@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include "GameEnv.h"
 #include <time.h>
+#include "Colliders.h"
 
 #define WIDTH_TILE 128
 #define HEIGHT_TILE 128
@@ -30,6 +31,7 @@ typedef struct tile
 {
 	SDL_Rect tileBox;
 	TileType tileType;
+	Collider* collider;
 }Tile;
 
 typedef struct Matrix
@@ -46,5 +48,5 @@ typedef struct Matrix
 }Matrix;
 
 void DrawLabirint(SDL_Renderer* render, SDL_Rect* camera, Matrix* matrix);
-bool InitCreateLabirint(Matrix* matrix);
+bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr);
 bool InitLabirintMatrix(Matrix* matrix);

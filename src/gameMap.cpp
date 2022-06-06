@@ -12,6 +12,13 @@ void DrawLabirint(SDL_Renderer* render, SDL_Rect* camera, Matrix* matrix)
 					matrix->tileArray[i][j].tileBox.h};
 				SDL_RenderCopy(render, matrix->gTileTexture,
 					&matrix->gTileClips[matrix->tileArray[i][j].tileType], &rect);
+				if (matrix->tileArray[i][j].collider->active)
+				{
+					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - camera->x,
+					matrix->tileArray[i][j].tileBox.y - camera->y,
+					matrix->tileArray[i][j].tileBox.w,
+					matrix->tileArray[i][j].tileBox.h };
+				}
 			}
 }
 
@@ -173,7 +180,7 @@ void ColoringLabirint(size_t** matr, Matrix* matrix)
 	}
 }
 
-bool InitCreateLabirint(Matrix* matrix)
+bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 {
 	srand((unsigned int)time(NULL));
 	int r = rand() % 20;
@@ -190,7 +197,19 @@ bool InitCreateLabirint(Matrix* matrix)
 	if (!InitLabirintMatrix(matrix)) return false;
 	for (int i = 0; i < matrix->countCol; i++)
 		for (int j = 0; j < matrix->countRow; j++)
+		{
 			matrix->tileArray[i][j].tileType = (TileType)matr[j][i];
+			BoxCollider* ptr;
+			AddColliderInArray(colArr, matrix->tileArray[i][j].collider = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, WALL_COL_ID));
+			matrix->tileArray[i][j].collider->collider = ptr;
+			if ((matrix->tileArray[i][j].tileType != GROUND)&&
+				(matrix->tileArray[i][j].tileType != DARK_GROUND)&&
+				(matrix->tileArray[i][j].tileType != BRICKED_GROUND)&&
+				(matrix->tileArray[i][j].tileType != DARK_BRICKED_GROUND))
+				matrix->tileArray[i][j].collider->active = true;
+			else
+				matrix->tileArray[i][j].collider->active = false;
+		}
 }
 
 bool InitLabirintMatrix(Matrix* matrix)

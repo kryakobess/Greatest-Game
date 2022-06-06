@@ -204,7 +204,7 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	}
 	printf("\n\n\n");
 	
-	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID]) {
+	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID]||colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID]) {
 		if (c[LocalPlayer]->model.posRect->x != WIDTH_w / 2 || c[LocalPlayer]->model.posRect->y != HEIGHT_w / 2) {
 			moveCharacter(c[LocalPlayer], 0, 0, -xPosShift, -yPosShift);
 		}

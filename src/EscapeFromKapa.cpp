@@ -67,8 +67,17 @@ bool InitializeGameData(enum DataType dataType)
 	else if (loadMedia())
 	{
 		if (!InitCollidersArray(&gCollidersArray, MAX_COUNT_COLLIDERS_ID)) return false;
-		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] = true;
-		if(!InitCreateLabirint(&gMatrix)) return false;
+		for (int i = 0; i < MAX_COUNT_COLLIDERS_ID; i++)
+		{
+			for (int j = 0; j < MAX_COUNT_COLLIDERS_ID; j++)
+			{
+				gCollidersArray->collisionMatrix[i][j] = false;
+			}
+		}
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID]
+			= gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID] = true;
+
+		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
 		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
