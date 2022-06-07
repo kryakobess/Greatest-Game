@@ -6,6 +6,8 @@ Mix_Music* gMusic = NULL;
 Mix_Chunk* gMoveChunk = NULL;
 Mix_Chunk* gRunChunk = NULL;
 Mix_Chunk* gSwordAttackChunk = NULL;
+CollidersArray* gCollidersArray = NULL;
+Matrix gMatrix;
 SDL_Rect gSpriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
 SDL_Texture* gSpriteTexture = NULL;
 SDL_Texture* gBackground = NULL;
@@ -43,14 +45,15 @@ bool loadMedia()
 		printf("bg fail\n");
 		success = false;
 	}
+	gMatrix.gTileTexture = loadTexture("tileset_regular.png", &gRenderer);
+	if (gMatrix.gTileTexture == NULL) {
+		printf("labirint tileset fail\n");
+		success = false;
+	}
+	
 	gMusic = Mix_LoadMUS("soundtrack1.mp3");
 	if (gMusic == NULL) {
 		printf("Soundtrack error!\n");
-		success = false;
-	}
-	gMoveChunk = Mix_LoadWAV("step2.wav");
-	if (gMoveChunk == NULL) {
-		printf("move chunk error!  SDL_mixer Error: %s\n", Mix_GetError());
 		success = false;
 	}
 	gSwordAttackChunk = Mix_LoadWAV("sword_attack.wav");
@@ -70,17 +73,30 @@ bool InitializeGameData(enum DataType dataType)
 	}
 	else if (loadMedia())
 	{
-		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 0 })) return false;
-		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 })) return false;
-		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 })) return false;
+		if (!InitCollidersArray(&gCollidersArray, MAX_COUNT_COLLIDERS_ID)) return false;
+		for (int i = 0; i < MAX_COUNT_COLLIDERS_ID; i++)
+		{
+			for (int j = 0; j < MAX_COUNT_COLLIDERS_ID; j++)
+			{
+				gCollidersArray->collisionMatrix[i][j] = false;
+			}
+		}
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] = true;
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID] = true;
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] = true;
+		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
+		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
+		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
+		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		for (int i = 0; i < playersCount; ++i) {
 			players[i] = (character*)malloc(sizeof(character));
 		}
 		if (!characterInit(players[LocalPlayer], gSpriteTexture, { WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25 },
-			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w })) return false;
+			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
-		{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, { 0,0,600,600 }, {0}, ActivateTrap)) return false;
-		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword)) return false;
+			{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, { 0,0,600,600 },
+			{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
+		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword, gCollidersArray, SWORD_COL_ID)) return false;
 		players[LocalPlayer]->hasSword = true;
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
@@ -103,6 +119,7 @@ void SendData(enum DataType dataType) {
 void Drawing() {
 	SDL_RenderClear(gRenderer);
 	SDL_RenderCopy(gRenderer, gBackground, players[LocalPlayer]->camera, NULL);
+	DrawLabirint(gRenderer, players[LocalPlayer]->camera, &gMatrix);
 	for (int i = 0; i < playersCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
 	RenderObject(&rockDown, gRenderer);
 	RenderObject(&sampleRock, gRenderer);
@@ -156,7 +173,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef);
+	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix);
 	return true;
 }
 
