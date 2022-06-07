@@ -14,6 +14,8 @@ SDL_Texture* gBackground = NULL;
 gameObj rockUp; gameObj rockDown; gameObj sampleRock;
 gameObj* objs[] = { &rockUp, &rockDown, &sampleRock };
 int objNumber = 3;
+int BG_WIDTH = 3800;
+int BG_HEIGHT = 2170;
 SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
 int playersCount = 1;
 character** players = (character**)malloc(sizeof(character*) * playersCount);
@@ -52,11 +54,11 @@ bool loadMedia()
 		success = false;
 	}
 	
-	gMusic = Mix_LoadMUS("soundtrack1.mp3");
+	/*gMusic = Mix_LoadMUS("soundtrack1.mp3");
 	if (gMusic == NULL) {
 		printf("Soundtrack error!\n");
 		success = false;
-	}
+	}*/
 	gSwordAttackChunk = Mix_LoadWAV("sword_attack.wav");
 	if (gSwordAttackChunk == NULL) {
 		printf("attack chunk error!\n");
@@ -86,6 +88,8 @@ bool InitializeGameData(enum DataType dataType)
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID] = true;
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] = true;
 		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
+		BG_WIDTH = gMatrix.countCol* WIDTH_TILE;
+		BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
 		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
@@ -230,7 +234,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix);
+	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
 	return true;
 }
 

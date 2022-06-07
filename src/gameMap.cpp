@@ -12,7 +12,10 @@ void DrawLabirint(SDL_Renderer* render, SDL_Rect* camera, Matrix* matrix)
 					matrix->tileArray[i][j].tileBox.h};
 				SDL_RenderCopy(render, matrix->gTileTexture,
 					&matrix->gTileClips[matrix->tileArray[i][j].tileType], &rect);
-				SDL_RenderDrawRect(render, &((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect);
+				if (matrix->tileArray[i][j].collider != NULL)
+				{
+					SDL_RenderDrawRect(render, &((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect);
+				}
 			}
 }
 
@@ -181,8 +184,8 @@ bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 	matrix->countCol = r * 2 + 61;
 	matrix->countRow = r * 2 + 41;
 
-	matrix->countCol = 11;
-	matrix->countRow = 11;
+	matrix->countCol = 111;
+	matrix->countRow = 111;
 
 	printf("Labirint with Col:%u and Row:%u\n", matrix->countCol, matrix->countRow);
 	size_t** matr = NULL;
@@ -196,16 +199,18 @@ bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 		for (int j = 0; j < matrix->countRow; j++)
 		{
 			matrix->tileArray[i][j].tileType = (TileType)matr[j][i];
-			BoxCollider* ptr;
-			AddColliderInArray(colArr, matrix->tileArray[i][j].collider = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, WALL_COL_ID));
-			matrix->tileArray[i][j].collider->collider = ptr;
-			if ((matrix->tileArray[i][j].tileType != GROUND)&&
-				(matrix->tileArray[i][j].tileType != DARK_GROUND)&&
-				(matrix->tileArray[i][j].tileType != BRICKED_GROUND)&&
+			if ((matrix->tileArray[i][j].tileType != GROUND) &&
+				(matrix->tileArray[i][j].tileType != DARK_GROUND) &&
+				(matrix->tileArray[i][j].tileType != BRICKED_GROUND) &&
 				(matrix->tileArray[i][j].tileType != DARK_BRICKED_GROUND))
+			{
+				BoxCollider* ptr;
+				AddColliderInArray(colArr, matrix->tileArray[i][j].collider = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, WALL_COL_ID));
+				matrix->tileArray[i][j].collider->collider = ptr;
 				matrix->tileArray[i][j].collider->active = true;
+			}
 			else
-				matrix->tileArray[i][j].collider->active = false;
+				matrix->tileArray[i][j].collider = NULL;
 		}
 }
 
