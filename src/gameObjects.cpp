@@ -2,7 +2,7 @@
 
 bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Rect srcCfg, SDL_Rect cBox, CollidersArray* colArr, enum ColliderID ID) {
 	obj->texture = lTexture;
-	obj->posRect = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+	//obj->posRect = (SDL_Rect*)malloc(sizeof(SDL_Rect));
 
 	BoxCollider* ptr;
 	if (!AddColliderInArray(colArr, obj->body = CreateCollider(ptr = CreateBoxCollider(cBox), BOX, ID))) return false;
@@ -12,7 +12,7 @@ bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Re
 		return false;
 		printf("Texture loading error!");
 	}
-	*obj->posRect = posCfg;
+	obj->posRect = posCfg;
 	obj->srcRect = srcCfg;
 	return true;
 }
@@ -35,27 +35,27 @@ void ItemFree(gameItem* i) {
 
 void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect) {
  	if (trap->isActive && Timer_GetTicks(&trap->delay) <= 10000) {
-		((BoxCollider*)trap->itemModel.body->collider)->rect = { trap->itemModel.posRect->x, trap->itemModel.posRect->y, trap->itemModel.posRect->w, trap->itemModel.posRect->h };
+		((BoxCollider*)trap->itemModel.body->collider)->rect = { trap->itemModel.posRect.x, trap->itemModel.posRect.y, trap->itemModel.posRect.w, trap->itemModel.posRect.h };
 	}
 	else if (keyFlag && Timer_GetTicks(&trap->delay) >= 20000) {
  		trap->isActive = true;
 		trap->itemModel.body->active = true;
 		Timer_Start(&trap->delay);
-		trap->itemModel.posRect->x = posRect->x;
-		trap->itemModel.posRect->y = posRect->y;
+		trap->itemModel.posRect.x = posRect->x;
+		trap->itemModel.posRect.y = posRect->y;
 	}
 	else {
 		trap->isActive = false;
 		trap->itemModel.body->active = false;
-		trap->itemModel.posRect->x = posRect->x;
-		trap->itemModel.posRect->y = posRect->y;
+		trap->itemModel.posRect.x = posRect->x;
+		trap->itemModel.posRect.y = posRect->y;
 	}
 }
 
 void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray* colArr, SDL_Rect* camera) {
 	for (int i = 0; i < pCount; ++i) {
 		if (players[i]->trap.isActive) {
-			players[i]->trap.ItemFunc(&players[i]->trap, false, players[i]->model.posRect);
+			players[i]->trap.ItemFunc(&players[i]->trap, false, &players[i]->model.posRect);
 			if (colArr->outCollisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] && players[i]->trap.itemModel.body->active)
 			{
 				printf("Collision PLAYER WITH SPIKE\n");
@@ -78,34 +78,34 @@ void ActivateSword(gameItem* sword, int spriteNumber, SDL_Rect* posRect) {
 	case KEY_PRESS_SURFACE_DOWN:
 		/*sword->collisionCircle->y = y0 + h;
 		sword->collisionCircle->x = x0 + w / 2;*/
-		sword->itemModel.posRect->y = y0 + h*2/3;
-		sword->itemModel.posRect->x = x0-w/2;
-		sword->itemModel.posRect->h = w;
-		sword->itemModel.posRect->w = 2*w;
+		sword->itemModel.posRect.y = y0 + h*2/3;
+		sword->itemModel.posRect.x = x0-w/2;
+		sword->itemModel.posRect.h = w;
+		sword->itemModel.posRect.w = 2*w;
 		break;
 	case KEY_PRESS_SURFACE_UP:
 		/*sword->collisionCircle->y = y0;
 		sword->collisionCircle->x = x0 + w / 2;*/
-		sword->itemModel.posRect->y = y0 ;
-		sword->itemModel.posRect->x = x0 - w / 2;
-		sword->itemModel.posRect->h = w;
-		sword->itemModel.posRect->w = 2*w;
+		sword->itemModel.posRect.y = y0 ;
+		sword->itemModel.posRect.x = x0 - w / 2;
+		sword->itemModel.posRect.h = w;
+		sword->itemModel.posRect.w = 2*w;
 		break;
 	case KEY_PRESS_SURFACE_LEFT:
 		/*sword->collisionCircle->y = y0 + h / 2;
 		sword->collisionCircle->x = x0;*/
-		sword->itemModel.posRect->y = y0+w/2;
-		sword->itemModel.posRect->x = x0 - 70;
-		sword->itemModel.posRect->h = w;
-		sword->itemModel.posRect->w = 2 * w;
+		sword->itemModel.posRect.y = y0+w/2;
+		sword->itemModel.posRect.x = x0 - 70;
+		sword->itemModel.posRect.h = w;
+		sword->itemModel.posRect.w = 2 * w;
 		break;
 	case KEY_PRESS_SURFACE_RIGHT:
 		/*sword->collisionCircle->y = y0 + h / 2;
 		sword->collisionCircle->x = x0 + w;*/
-		sword->itemModel.posRect->y = y0 + w / 2;
-		sword->itemModel.posRect->x = x0 + 10;
-		sword->itemModel.posRect->h = w;
-		sword->itemModel.posRect->w = 2 * w;
+		sword->itemModel.posRect.y = y0 + w / 2;
+		sword->itemModel.posRect.x = x0 + 10;
+		sword->itemModel.posRect.h = w;
+		sword->itemModel.posRect.w = 2 * w;
 		break;
 	}
 	Timer_Start(&sword->delay);
@@ -127,7 +127,7 @@ void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int sprite
 		else if (Timer_GetTicks(&sword->delay) >= 150) {
 			srcRect = { 30, 0, 30,30 };
 		}
-		SDL_RenderCopyEx(gRenderer, sword->itemModel.texture, &srcRect, sword->itemModel.posRect, degree, NULL, flip);
+		SDL_RenderCopyEx(gRenderer, sword->itemModel.texture, &srcRect, &sword->itemModel.posRect, degree, NULL, flip);
 		if (Timer_GetTicks(&sword->delay) >= 300) {
 			//sword->itemModel.collisionBox = NULL;
 			sword->isActive = false;
@@ -161,22 +161,22 @@ void ObjFree(gameObj* obj)
 {
 	SDL_DestroyTexture(obj->texture);
 	obj->texture = NULL;
-	free(obj->posRect);
-	obj->posRect = NULL;
+	//free(obj->posRect);
+	//obj->posRect = NULL;
 }
 
 void RenderObject(gameObj* obj, SDL_Renderer* renderer)
 {
-	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), (obj->posRect));
+	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), &(obj->posRect));
 }
 
 void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift) 
 {
 	for (int i = 0; i < objCount; i++) {
-		if (objs[i]->posRect != NULL) {
-			objs[i]->posRect->y -= yShift;
-			objs[i]->posRect->x -= xShift;
-		}
+		//if (objs[i]->posRect != {0, 0, 0, 0}) {
+			objs[i]->posRect.y -= yShift;
+			objs[i]->posRect.x -= xShift;
+		//}
 		if (objs[i]->body->active)	{
 			((BoxCollider*)(objs[i]->body->collider))->rect.y -= yShift;
 			((BoxCollider*)(objs[i]->body->collider))->rect.x -= xShift;
@@ -191,26 +191,26 @@ void SavePlayersPosition(character** p, int pCount, int yShift, int xShift) {
 			((BoxCollider*)(p[i]->model.body->collider))->rect.y -= yShift;
 			((BoxCollider*)(p[i]->feetCol->collider))->rect.x -= xShift;
 			((BoxCollider*)(p[i]->feetCol->collider))->rect.y -= yShift;
-			p[i]->model.posRect->x -= xShift;
-			p[i]->model.posRect->y -= yShift;
+			p[i]->model.posRect.x -= xShift;
+			p[i]->model.posRect.y -= yShift;
 			/*if (p[i]->sword.itemModel.body->active) {
 				((BoxCollider*)(p[i]->sword.itemModel.body->collider))->rect.x -= xShift;
 				((BoxCollider*)(p[i]->sword.itemModel.body->collider))->rect.y -= yShift;
 			}*/
-			if (p[i]->sword.itemModel.posRect != NULL) {
-				p[i]->sword.itemModel.posRect->x -= xShift;
-				p[i]->sword.itemModel.posRect->y -= yShift;
-			}
+			//if (p[i]->sword.itemModel.posRect != NULL) {
+				p[i]->sword.itemModel.posRect.x -= xShift;
+				p[i]->sword.itemModel.posRect.y -= yShift;
+			//}
 		}
-		if (p[i]->trap.itemModel.posRect != NULL) {
-			p[i]->trap.itemModel.posRect->x -= xShift;
-			p[i]->trap.itemModel.posRect->y -= yShift;
-		}
+		//if (p[i]->trap.itemModel.posRect != NULL) {
+			p[i]->trap.itemModel.posRect.x -= xShift;
+			p[i]->trap.itemModel.posRect.y -= yShift;
+		//}
 	}
 }
 
 void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPosShift) {
-	c->model.posRect->x += xPosShift; c->model.posRect->y += yPosShift;
+	c->model.posRect.x += xPosShift; c->model.posRect.y += yPosShift;
 
 	((BoxCollider*)(c->feetCol->collider))->rect.x += xPosShift;
 	((BoxCollider*)(c->feetCol->collider))->rect.y += yPosShift;
@@ -233,35 +233,35 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
 	if (currentKeyStates[SDL_SCANCODE_W]) {
-		if (c[LocalPlayer]->camera->y > 0 && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->y > 0) yPosShift -= VELOCITY;
+		if (c[LocalPlayer]->camera->y > 0 && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.y > 0) yPosShift -= VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_UP; c[LocalPlayer]->spriteNumber[1]++;
 		}
 	}
 	if (currentKeyStates[SDL_SCANCODE_S]) {
-		if (c[LocalPlayer]->camera->y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect->y - HEIGHT_w / 2 )<= 10)) yShift += VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->y < HEIGHT_w - c[LocalPlayer]->model.posRect->h) yPosShift += VELOCITY;
+		if (c[LocalPlayer]->camera->y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2 )<= 10)) yShift += VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.y < HEIGHT_w - c[LocalPlayer]->model.posRect.h) yPosShift += VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c[LocalPlayer]->spriteNumber[1]++;
 		}
 	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
-		if (c[LocalPlayer]->camera->x > 0 && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->x > 0) xPosShift -= VELOCITY;
+		if (c[LocalPlayer]->camera->x > 0 && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.x > 0) xPosShift -= VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_LEFT; c[LocalPlayer]->spriteNumber[1]++;
 		}
 	}
 	if (currentKeyStates[SDL_SCANCODE_D]) {
-		if (c[LocalPlayer]->camera->x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect->x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
-		else if (c[LocalPlayer]->model.posRect->x < WIDTH_w - c[LocalPlayer]->model.posRect->w) xPosShift += VELOCITY;
+		if (c[LocalPlayer]->camera->x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.x < WIDTH_w - c[LocalPlayer]->model.posRect.w) xPosShift += VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_RIGHT; c[LocalPlayer]->spriteNumber[1]++;
 		}
 	}
 	if (currentKeyStates[SDL_SCANCODE_E]) {
-		c[LocalPlayer]->trap.ItemFunc(&c[LocalPlayer]->trap, true, c[LocalPlayer]->model.posRect);
+		c[LocalPlayer]->trap.ItemFunc(&c[LocalPlayer]->trap, true, &c[LocalPlayer]->model.posRect);
 	}
 	if (currentKeyStates[SDL_SCANCODE_SPACE] && c[LocalPlayer]->stamina > 0 && c[LocalPlayer]->canRun) {
 		c[LocalPlayer]->VelCoef *= 2;

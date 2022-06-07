@@ -95,8 +95,8 @@ bool InitializeGameData(enum DataType dataType)
 		if (!characterInit(players[LocalPlayer], gSpriteTexture, { WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25 },
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
-			{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, { 0,0,600,600 },
-			{ players[LocalPlayer]->model.posRect->x, players[LocalPlayer]->model.posRect->y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
+			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
+			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
 		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword, gCollidersArray, SWORD_COL_ID)) return false;
 		players[LocalPlayer]->hasSword = true;
 		for (int i = 0; i < 4; ++i) {
@@ -155,6 +155,7 @@ int LaunchGame(myServer* server, myClient* client) {
 }
 
 void GetData(enum DataType dataType) {
+	if (dataType == CLIENT){}
 	if (dataType == HOST) {
 		//Обновляем все структуры игроков
 	}
@@ -221,7 +222,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 	if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
 		if (players[LocalPlayer]->hasSword && (Timer_GetTicks(&players[LocalPlayer]->sword.delay) >= 1000) && e.button.state == SDL_PRESSED) {
 			if (players[LocalPlayer]->canRun && players[LocalPlayer]->stamina > 40) {
-				players[LocalPlayer]->sword.ItemFunc(&players[LocalPlayer]->sword, players[LocalPlayer]->spriteNumber[0], players[LocalPlayer]->model.posRect);
+				players[LocalPlayer]->sword.ItemFunc(&players[LocalPlayer]->sword, players[LocalPlayer]->spriteNumber[0], &players[LocalPlayer]->model.posRect);
 				Mix_PlayChannel(1, gSwordAttackChunk, 0);
 				players[LocalPlayer]->stamina -= 40;
 				if (players[LocalPlayer]->stamina < 10) players[LocalPlayer]->canRun = false;

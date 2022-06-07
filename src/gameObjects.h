@@ -25,7 +25,7 @@ const enum KeyPressSurfaces
 };
 
 typedef struct gameObj {
-	SDL_Rect* posRect;
+	SDL_Rect posRect;
 	SDL_Rect srcRect;
 	Collider* body;
 	SDL_Texture* texture;
