@@ -12,6 +12,7 @@ enum DataType
 	HOST,
 	CLIENT
 };
+
 typedef struct DateBase
 {
 	char* nameStructure[MAX_STRUCTURE_COUNT];

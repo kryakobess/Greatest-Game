@@ -31,7 +31,6 @@ bool initGameItem(gameItem* i, SDL_Texture* t, SDL_Rect posCfg, SDL_Rect srcCfg,
 void ItemFree(gameItem* i) {
 	ObjFree(&i->itemModel);
 	Timer_Stop(&i->delay);
-	free(i->collisionCircle);
 }
 
 void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect) {
@@ -73,10 +72,8 @@ void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray
 
 void ActivateSword(gameItem* sword, int spriteNumber, SDL_Rect* posRect) {
 	sword->isActive = true;
-	sword->collisionCircle = (Circle*)realloc(sword->collisionCircle, sizeof(Circle));
 	int y0 = posRect->y; int x0 = posRect->x;
 	int w = posRect->w; int h = posRect->h;
-	sword->collisionCircle->r = w / 2;
 	switch (spriteNumber) {
 	case KEY_PRESS_SURFACE_DOWN:
 		/*sword->collisionCircle->y = y0 + h;
@@ -111,13 +108,12 @@ void ActivateSword(gameItem* sword, int spriteNumber, SDL_Rect* posRect) {
 		sword->itemModel.posRect->w = 2 * w;
 		break;
 	}
-	printf("%d\n", sword->collisionCircle->r);
 	Timer_Start(&sword->delay);
 }
 
 void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int spriteDirect) {
 
-	if (sword->isActive && sword->collisionCircle != NULL) {
+	//if (sword->isActive && sword->collisionCircle != NULL) {
 		double degree = 0;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 		if (spriteDirect == KEY_PRESS_SURFACE_DOWN) flip = SDL_FLIP_VERTICAL;
@@ -137,7 +133,7 @@ void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int sprite
 			sword->isActive = false;
 			Timer_Start(&sword->delay);
 		}
-	}
+	//}
 }
 
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera, CollidersArray* colArr)

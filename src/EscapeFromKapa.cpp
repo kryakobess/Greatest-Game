@@ -114,8 +114,8 @@ bool InitializeGameData(enum DataType dataType)
 int LaunchGame(myServer* server, myClient* client) {
 	while (true) {
 		system("cls");
-		printf("		 --------------------------\n		 |Welcome to EFK Launcher!|\n		 --------------------------\n\n");
-		printf("Press 1 to HOST Game              Press 2 to CONNECT to Game              Press -1 to EXIT Game\nEnter your decision: ");
+		printf("					   --------------------------\n					   |Welcome to EFK Launcher!|\n				  	   --------------------------\n\n");
+		printf("	 Press 1 to HOST Game              Press 2 to CONNECT to Game              Press -1 to EXIT Game\n\n Enter your decision: ");
 		int choice = 0;
 		scanf("%d", &choice);
 		if (choice == 1 || choice == 2) {
@@ -155,11 +155,21 @@ int LaunchGame(myServer* server, myClient* client) {
 }
 
 void GetData(enum DataType dataType) {
-
+	if (dataType == HOST) {
+		//Обновляем все структуры игроков
+	}
 }
 
 void SendData(enum DataType dataType) {
+	if (dataType == CLIENT) {
+		//client.sentData = StructureToString();
+		// Генерирует запросы 
 
+	}
+	if (dataType == HOST) {
+		//СОхраняем в БД свою структуру
+		//
+	}
 }
 
 void Drawing() {

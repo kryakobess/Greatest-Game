@@ -34,7 +34,6 @@ typedef struct gameObj {
 typedef struct gameItem {
 	gameObj itemModel;
 	void(*ItemFunc)(gameItem*, int, SDL_Rect*);
-	Circle* collisionCircle;
 	Timer delay;
 	bool isActive;
 }gameItem;
