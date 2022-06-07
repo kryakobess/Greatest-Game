@@ -175,8 +175,8 @@ void SendData(enum DataType dataType) {
 
 void Drawing() {
 	SDL_RenderClear(gRenderer);
-	SDL_RenderCopy(gRenderer, gBackground, players[LocalPlayer]->camera, NULL);
-	DrawLabirint(gRenderer, players[LocalPlayer]->camera, &gMatrix);
+	SDL_RenderCopy(gRenderer, gBackground, &players[LocalPlayer]->camera, NULL);
+	DrawLabirint(gRenderer, &players[LocalPlayer]->camera, &gMatrix);
 	for (int i = 0; i < playersCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
 	RenderObject(&rockDown, gRenderer);
 	RenderObject(&sampleRock, gRenderer);

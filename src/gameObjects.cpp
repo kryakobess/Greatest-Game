@@ -144,9 +144,9 @@ bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SD
 	if (!AddColliderInArray(colArr, (Collider*)(c->feetCol = CreateCollider(ptr = CreateBoxCollider(cBox), BOX, PLAYER_COL_ID)))) return false;
 	c->feetCol->collider = ptr;
 
-	c->camera = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+	//c->camera = (SDL_Rect*)malloc(sizeof(SDL_Rect));
 	if (!initGameObject(&c->model, t, pos, {}, hitBox, colArr, PLAYER_BODY_COL_ID)) return false;
-	*c->camera = camera;
+	c->camera = camera;
 	c->VelCoef = 1;
 	c->sword = { 0 };
 	c->trap = { 0 };
@@ -217,7 +217,7 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	((BoxCollider*)(c->model.body->collider))->rect.x += xPosShift;
 	((BoxCollider*)(c->model.body->collider))->rect.y += yPosShift;
 
-	c->camera->x += xShift; c->camera->y += yShift;
+	c->camera.x += xShift; c->camera.y += yShift;
 }
 
 void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix)
@@ -227,34 +227,34 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 		if (c[LocalPlayer]->stamina >= 100) c[LocalPlayer]->canRun = true;
 	}
 	c[LocalPlayer]->VelCoef = velCoef;
-	ReleaseSpikes(c, playersCount, velCoef, colArr, c[LocalPlayer]->camera);
+	ReleaseSpikes(c, playersCount, velCoef, colArr, &c[LocalPlayer]->camera);
 
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
 	const Uint8* currentKeyStates = move;
 	if (currentKeyStates[SDL_SCANCODE_W]) {
-		if (c[LocalPlayer]->camera->y > 0 && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
+		if (c[LocalPlayer]->camera.y > 0 && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
 		else if (c[LocalPlayer]->model.posRect.y > 0) yPosShift -= VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_UP; c[LocalPlayer]->spriteNumber[1]++;
 		}
 	}
 	if (currentKeyStates[SDL_SCANCODE_S]) {
-		if (c[LocalPlayer]->camera->y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2 )<= 10)) yShift += VELOCITY;
+		if (c[LocalPlayer]->camera.y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2 )<= 10)) yShift += VELOCITY;
 		else if (c[LocalPlayer]->model.posRect.y < HEIGHT_w - c[LocalPlayer]->model.posRect.h) yPosShift += VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c[LocalPlayer]->spriteNumber[1]++;
 		}
 	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
-		if (c[LocalPlayer]->camera->x > 0 && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
+		if (c[LocalPlayer]->camera.x > 0 && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
 		else if (c[LocalPlayer]->model.posRect.x > 0) xPosShift -= VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_LEFT; c[LocalPlayer]->spriteNumber[1]++;
 		}
 	}
 	if (currentKeyStates[SDL_SCANCODE_D]) {
-		if (c[LocalPlayer]->camera->x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
+		if (c[LocalPlayer]->camera.x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
 		else if (c[LocalPlayer]->model.posRect.x < WIDTH_w - c[LocalPlayer]->model.posRect.w) xPosShift += VELOCITY;
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_RIGHT; c[LocalPlayer]->spriteNumber[1]++;
@@ -276,15 +276,15 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	SavePlayersPosition(c, playersCount, yShift , xShift);
 	//printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
 	//Shift box Colliders
-	GetCollisionStates(colArr, c[LocalPlayer]->camera);
+	GetCollisionStates(colArr, &c[LocalPlayer]->camera);
 	for (int i = 0; i < matrix->countCol; i++)
 		for (int j = 0; j < matrix->countRow; j++)
-			if (isCollided(*c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
+			if (isCollided(c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
 			{
 				if (matrix->tileArray[i][j].collider->active)
 				{
-					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera->x,
-					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera->y,
+					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera.x,
+					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera.y,
 					matrix->tileArray[i][j].tileBox.w,
 					matrix->tileArray[i][j].tileBox.h };
 				}

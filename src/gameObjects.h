@@ -44,7 +44,7 @@ typedef struct character {
 	gameItem sword;
 	Collider* feetCol;
 	SDL_Rect spriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
-	SDL_Rect* camera;
+	SDL_Rect camera;
 	size_t spriteNumber[2];
 	bool hasSword;
 	bool canRun;
