@@ -130,7 +130,8 @@ void Drawing() {
 	SDL_RenderFillRect(gRenderer, &staminaLine);
 	hpLine.w = players[LocalPlayer]->HP * 3;
 	staminaLine.w = players[LocalPlayer]->stamina * 3;
-	SDL_SetRenderDrawColor(gRenderer, 0x0A, 0xFB, 0x80, 0xFF);
+	if (!players[LocalPlayer]->canRun) SDL_SetRenderDrawColor(gRenderer, 0xDA, 0xFB, 0x80, 0xFF);
+	else	SDL_SetRenderDrawColor(gRenderer, 0x0A, 0xFB, 0x80, 0xFF);
 	SDL_RenderFillRect(gRenderer, &staminaLine);
 	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x55, 0x00, 0xFF);
 	SDL_RenderFillRect(gRenderer, &hpLine);
