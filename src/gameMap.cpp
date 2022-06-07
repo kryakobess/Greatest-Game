@@ -12,6 +12,7 @@ void DrawLabirint(SDL_Renderer* render, SDL_Rect* camera, Matrix* matrix)
 					matrix->tileArray[i][j].tileBox.h};
 				SDL_RenderCopy(render, matrix->gTileTexture,
 					&matrix->gTileClips[matrix->tileArray[i][j].tileType], &rect);
+				SDL_RenderDrawRect(render, &((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect);
 			}
 }
 

@@ -18,6 +18,7 @@ SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
 int playersCount = 1;
 character** players = (character**)malloc(sizeof(character*) * playersCount);
 SDL_Event event;
+DateBase gDataBase;
 
 bool loadMedia()
 {
@@ -104,8 +105,53 @@ bool InitializeGameData(enum DataType dataType)
 			}
 		}
 		SDL_PollEvent(&event);
+		InitDateBase(&gDataBase);
+		/*AddStructureInDateBase("")*/
 	}
 	return true;
+}
+
+int LaunchGame(myServer* server, myClient* client) {
+	while (true) {
+		system("cls");
+		printf("		 --------------------------\n		 |Welcome to EFK Launcher!|\n		 --------------------------\n\n");
+		printf("Press 1 to HOST Game              Press 2 to CONNECT to Game              Press -1 to EXIT Game\nEnter your decision: ");
+		int choice = 0;
+		scanf("%d", &choice);
+		if (choice == 1 || choice == 2) {
+			system("cls");
+			char IP[15];
+			printf("Press 0 to return back\n\nEnter server IP:\n");
+			fgets(IP, 15, stdin);
+			fgets(IP, 15, stdin);
+			size_t ipSize = strlen(IP);
+			if (IP[ipSize - 1] == '\n') IP[ipSize - 1] = '\0';
+			if (!strcmp("0\n", IP)) {
+				continue;
+			}
+			printf("Enter server Port:\n");
+			int port = 0;
+			scanf("%d", &port);
+			if (port == 0 || port >= 100000) {
+				continue;
+			}
+			if (choice == 1) {
+				if (StartServer(server, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) return HOST;
+				else {
+					printf("Error creating server!\n");
+					continue;
+				}
+			}
+			else {
+				if (ConnectToServer(client, (const char*)IP, (const int)port) == SUCCESSFUL_CLIENT_INSTALATION) return CLIENT;
+				else {
+					printf("Error connecting to server!\n");
+					continue;
+				}
+			}
+		}
+		else if (choice == -1) return -1;
+	}
 }
 
 void GetData(enum DataType dataType) {

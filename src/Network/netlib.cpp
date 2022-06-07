@@ -2,6 +2,7 @@
 
 pthread_mutex_t clientLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t servLock = PTHREAD_MUTEX_INITIALIZER;
+int Global_clientCount;
 
 int IncludeWSADATA()
 {
@@ -87,6 +88,7 @@ void* ServerThread(void* arg) {
 	closesocket(serverCfg->serverSock);
 	return 0;
 }
+
 int StartServer(myServer* server, const char* ip, const int port) {
 	Global_clientCount = 0;
 	SOCKET srvS = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
@@ -121,8 +123,8 @@ void* SendToServer(void* arg) {
 			if (ret == SOCKET_ERROR)
 			{
 				printf("Can't send message\n");
-				closesocket(client);
-				return;
+				closesocket(client->socket);
+				return (void*)CONNECTION_CLOSED;
 			}
 			ret = recv(client->socket, client->recievedData, sizeof(client->recievedData), 0);
 			if (ret == 0 || ret == WSAECONNRESET)

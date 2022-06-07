@@ -67,4 +67,5 @@ int ClearDateBase(DateBase* dateBase)
 		free(dateBase->stringStructure[i]);
 	}
 	dateBase->countStructure = 0;
+	return 1;
 }

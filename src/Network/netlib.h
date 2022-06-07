@@ -4,7 +4,6 @@
 #define HAVE_STRUCT_TIMESPEC
 #define MAXSIZECLENTS 50
 
-int Global_clientCount;
 
 #include <pthread.h>
 #pragma comment(lib, "ws2_32.lib")
