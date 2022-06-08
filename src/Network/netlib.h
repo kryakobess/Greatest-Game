@@ -42,7 +42,7 @@ typedef struct taskID {
 typedef struct myServer {
 	SOCKET serverSock;
 	//taskID clients[MAXSIZECLENTS];
-	int lastClientNumb;
+	int ClientCount;
 	SOCKADDR_IN serverAddr;
 	pthread_t serverThread;
 	//обработка полученных и отправл€ющихс€ данных

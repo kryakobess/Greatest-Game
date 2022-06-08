@@ -8,6 +8,9 @@
 #include "DateBase/DateBase.h"
 #include "Network/netlib.h"
 
+myServer gServer; myClient gClient;
+
+void DataProcessing(char* received, char* transmit);
 int LaunchGame(myServer* server, myClient* client);
 bool InitializeGameData(enum DataType dataType);
 void GameLoop(enum DataType dataType);

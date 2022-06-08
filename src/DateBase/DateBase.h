@@ -20,6 +20,10 @@ typedef struct DateBase
 	int countStructure;
 }DateBase;
 
+int SaveStructureToString(void* structure, const int sizeStructure, char** str);
+int LoadStructureFromString(void** structure, const int sizeStructure, char* str);
+int getIDStructure(const char* name, DateBase* dateBase);
+
 //Инициализация БД
 void InitDateBase(DateBase* dateBase);
 //Добавляет структуру в массив, если не хватает места возвращается -1, если достигнуто ограничение в MAX_STRUCTURE_COUNT возвращается -2

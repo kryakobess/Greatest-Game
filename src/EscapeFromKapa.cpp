@@ -21,6 +21,86 @@ int playersCount = 1;
 character** players = (character**)malloc(sizeof(character*) * playersCount);
 SDL_Event event;
 DateBase gDataBase;
+char gMyLogin[20];
+
+void DataProcessing(char* received, char* transmit) {
+	/*SAPP — Send All Players Positions
+	SMP — Send My Position 
+	SPC — Send Players' Count
+	CTS — Connected to Server
+	DFS — Disconnect from Server*/
+	char task[5] = {0};
+	sscanf(received, "{%[A-Z]}", task);
+	//Saving structures from Data Base in column format in transmit variable: "<name> <structure>". 
+	//Then server transmit information about all users(including current client) to client who requested it
+	//Transmit format: "{name1}[Structure1]{name2}[Structure2]..." 
+	if (!strcmp("SAPP", task)){
+		int trnLen = 0;
+		transmit[0] = '{';
+		for (int i = 0; i < gDataBase.countStructure; ++i) {
+			strcat(transmit, gDataBase.nameStructure[i]);
+			trnLen = strlen(transmit);
+			transmit[trnLen] = '}'; transmit[trnLen+1] = '[';
+			strcat(transmit, gDataBase.stringStructure[i]);
+			trnLen = strlen(transmit);
+			transmit[trnLen] = ']';
+			transmit[trnLen+1] = '{';
+		}
+		transmit[trnLen + 1] = '\0';
+	}
+	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base
+	//Receive format: "{TASK}[LoginName][structure]"
+	//Transmit format: "{TASK}[Answer]"
+	if (!strcmp("SMP", task)) {
+		char structure[1024] = { 0 };
+		char name[128] = { 0 };
+		sscanf(received, "[%[a-zA-Z ]][%[a-zA-Z ]]", name, structure);
+		int ID = getIDStructure(name, &gDataBase);
+		if (ID == -1) {
+			strcpy(transmit, "{SMP}[ID_Error]");
+		}
+		else {
+			gDataBase.stringStructure[ID] = structure;
+			strcpy(transmit, "{SMP}[Data_Sent]");
+		}
+	}
+	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
+	//Transmit format: "/PlayersCount/[P1_name][P2_name][PN_name]"
+	if (!strcmp("SPC", task)) {
+		strcpy(transmit, "{SPC}");
+		transmit[5] = '/'; transmit[6] = gServer.ClientCount; transmit[7] = '/';
+		transmit[8] = '[';
+		int trnLen = 0;
+		for (int i = 0; i < gDataBase.countStructure; ++i) {
+			strcat(transmit, gDataBase.nameStructure[i]);
+			trnLen = strlen(transmit);
+			transmit[trnLen] = ']';
+			transmit[trnLen + 1] = '[';
+		}
+		transmit[trnLen + 1] = '\0';
+	}
+	//Receive format: "{Task}[Login][Structure]"
+	//Transmit format: "{Task}[Answer]" Answer == "Connected" or Answer == "ConnectionFail".
+	if (!strcmp("CTS", task)) {
+		char name[128] = { 0 };
+		char structure[1024] = { 0 };
+		sscanf(received, "[%[a-zA-Z ]][%[a-zA-Z ]]", name, structure);
+		if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
+			sprintf(transmit, "{CTS}[ConnectionFail]");
+		}
+		else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
+			sprintf(transmit, "{CTS}[ConnectionFail]");
+		}
+		else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(strlen(structure)+1, sizeof(char)))) {
+			sprintf(transmit, "{CTS}[ConnectionFail]");
+		}
+		else {
+			sprintf(gDataBase.nameStructure[gDataBase.countStructure],"%[a-zA-Z ]_character", name);
+			strcpy(gDataBase.stringStructure[gDataBase.countStructure], structure);
+			sprintf(transmit, "{CTS}[Connected]");
+		}
+	}
+}
 
 bool loadMedia()
 {
@@ -68,7 +148,7 @@ bool loadMedia()
 	return success;
 }
 
-bool InitializeGameData(enum DataType dataType)
+bool InitializeGameData(enum DataType dataType, char* login)
 {
 	if (!IinitScreen(&gWindow, &gRenderer, &gMusic, WIDTH_w, HEIGHT_w)) {
 				printf("Initialization error!");
@@ -115,6 +195,8 @@ bool InitializeGameData(enum DataType dataType)
 	return true;
 }
 
+
+
 int LaunchGame(myServer* server, myClient* client) {
 	while (true) {
 		system("cls");
@@ -130,7 +212,7 @@ int LaunchGame(myServer* server, myClient* client) {
 			fgets(IP, 15, stdin);
 			size_t ipSize = strlen(IP);
 			if (IP[ipSize - 1] == '\n') IP[ipSize - 1] = '\0';
-			if (!strcmp("0\n", IP)) {
+			if (!strcmp("0", IP)) {
 				continue;
 			}
 			printf("Enter server Port:\n");
@@ -139,6 +221,15 @@ int LaunchGame(myServer* server, myClient* client) {
 			if (port == 0 || port >= 100000) {
 				continue;
 			}
+
+			printf("Enter your Login(Less then 21 characters):\n");
+			int lgLen = 0;
+			do {
+				fgets(gMyLogin, 21, stdin);
+				lgLen = strlen(gMyLogin);
+				gMyLogin[lgLen] = '\0';
+			} while (lgLen > 20 && lgLen != 0);
+
 			if (choice == 1) {
 				if (StartServer(server, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) return HOST;
 				else {

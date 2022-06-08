@@ -81,6 +81,7 @@ void* ServerThread(void* arg) {
 			Global_clientCount++;
 			pthread_mutex_unlock(&servLock);
 		}
+		if (serverCfg->ClientCount != Global_clientCount) serverCfg->ClientCount = Global_clientCount;
 		pthread_t client;
 		pthread_create(&client, NULL, ListenClient, (void*)clientTask);
 		pthread_detach(client);
