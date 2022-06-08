@@ -33,18 +33,19 @@ void DataProcessing(char* received, char* transmit) {
 	sscanf(received, "{%[A-Z]}", task);
 	//Saving structures from Data Base in column format in transmit variable: "<name> <structure>". 
 	//Then server transmit information about all users(including current client) to client who requested it
-	//Transmit format: "{name1}[Structure1]{name2}[Structure2]..." 
+	//Transmit format: "{TASK}/name1/[Structure1]/name2/[Structure2]..." 
 	if (!strcmp("SAPP", task)){
 		int trnLen = 0;
-		transmit[0] = '{';
+		strcpy(transmit, "{SAAP}");
+		transmit[6] = '/';
 		for (int i = 0; i < gDataBase.countStructure; ++i) {
 			strcat(transmit, gDataBase.nameStructure[i]);
 			trnLen = strlen(transmit);
-			transmit[trnLen] = '}'; transmit[trnLen+1] = '[';
+			transmit[trnLen] = '/'; transmit[trnLen+1] = '[';
 			strcat(transmit, gDataBase.stringStructure[i]);
 			trnLen = strlen(transmit);
 			transmit[trnLen] = ']';
-			transmit[trnLen+1] = '{';
+			transmit[trnLen+1] = '/';
 		}
 		transmit[trnLen + 1] = '\0';
 	}
@@ -65,7 +66,7 @@ void DataProcessing(char* received, char* transmit) {
 		}
 	}
 	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
-	//Transmit format: "/PlayersCount/[P1_name][P2_name][PN_name]"
+	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
 	if (!strcmp("SPC", task)) {
 		strcpy(transmit, "{SPC}");
 		transmit[5] = '/'; transmit[6] = gServer.ClientCount; transmit[7] = '/';
@@ -79,8 +80,8 @@ void DataProcessing(char* received, char* transmit) {
 		}
 		transmit[trnLen + 1] = '\0';
 	}
-	//Receive format: "{Task}[Login][Structure]"
-	//Transmit format: "{Task}[Answer]" Answer == "Connected" or Answer == "ConnectionFail".
+	//Receive format: "{TASK}[Login][Structure]"
+	//Transmit format: "{TASK}[Answer]" Answer == "Connected" or Answer == "ConnectionFail".
 	if (!strcmp("CTS", task)) {
 		char name[128] = { 0 };
 		char structure[1024] = { 0 };
