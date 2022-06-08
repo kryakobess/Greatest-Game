@@ -80,7 +80,7 @@ void DataProcessing(char* received, char* transmit) {
 		transmit[trnLen + 1] = '\0';
 	}
 	//Receive format: "{TASK}[Login][Structure]"
-	//Transmit format: "{TASK}[Answer]" Answer == "Connected" or Answer == "ConnectionFail".
+	//Transmit format: "{TASK}[Answer]" where Answer == "Connected", Answer == "ConnectionFail" or Answer == "ReConnected".
 	if (!strcmp("CTS", task)) {
 		char name[128] = { 0 };
 		char structure[1024] = { 0 };
@@ -100,6 +100,9 @@ void DataProcessing(char* received, char* transmit) {
 				strcpy(gDataBase.stringStructure[gDataBase.countStructure], structure);
 				sprintf(transmit, "{CTS}[Connected]");
 			}
+		}
+		else {
+			strcpy(transmit, "{CTS}[ReConnected]");
 		}
 	}
 }
