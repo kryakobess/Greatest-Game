@@ -27,8 +27,7 @@ void DataProcessing(char* received, char* transmit) {
 	/*SAPP — Send All Players Positions
 	SMP — Send My Position 
 	SPC — Send Players' Count
-	CTS — Connected to Server
-	DFS — Disconnect from Server*/
+	CTS — Connected to Server*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z]}", task);
 	//Saving structures from Data Base in column format in transmit variable: "<name> <structure>". 
@@ -86,19 +85,21 @@ void DataProcessing(char* received, char* transmit) {
 		char name[128] = { 0 };
 		char structure[1024] = { 0 };
 		sscanf(received, "[%[a-zA-Z ]][%[a-zA-Z ]]", name, structure);
-		if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
-			sprintf(transmit, "{CTS}[ConnectionFail]");
-		}
-		else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
-			sprintf(transmit, "{CTS}[ConnectionFail]");
-		}
-		else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(strlen(structure)+1, sizeof(char)))) {
-			sprintf(transmit, "{CTS}[ConnectionFail]");
-		}
-		else {
-			sprintf(gDataBase.nameStructure[gDataBase.countStructure],"%[a-zA-Z ]_character", name);
-			strcpy(gDataBase.stringStructure[gDataBase.countStructure], structure);
-			sprintf(transmit, "{CTS}[Connected]");
+		if (getIDStructure(name, &gDataBase) == -1) {
+			if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
+				sprintf(transmit, "{CTS}[ConnectionFail]");
+			}
+			else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
+				sprintf(transmit, "{CTS}[ConnectionFail]");
+			}
+			else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(strlen(structure) + 1, sizeof(char)))) {
+				sprintf(transmit, "{CTS}[ConnectionFail]");
+			}
+			else {
+				sprintf(gDataBase.nameStructure[gDataBase.countStructure], "%[a-zA-Z ]_character", name);
+				strcpy(gDataBase.stringStructure[gDataBase.countStructure], structure);
+				sprintf(transmit, "{CTS}[Connected]");
+			}
 		}
 	}
 }
