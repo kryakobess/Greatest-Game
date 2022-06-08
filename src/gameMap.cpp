@@ -184,8 +184,8 @@ bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 	matrix->countCol = r * 2 + 61;
 	matrix->countRow = r * 2 + 41;
 
-	matrix->countCol = 111;
-	matrix->countRow = 111;
+	matrix->countCol = 11;
+	matrix->countRow = 11;
 
 	printf("Labirint with Col:%u and Row:%u\n", matrix->countCol, matrix->countRow);
 	size_t** matr = NULL;
