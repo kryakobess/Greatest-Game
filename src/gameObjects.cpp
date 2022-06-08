@@ -276,9 +276,11 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	SavePlayersPosition(c, playersCount, yShift , xShift);
 	//printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
 	//Shift box Colliders
-
+	int i = 0;
 	do
 	{
+		i++;
+		if (i >= 3) break;
 		GetCollisionStates(colArr, &c[LocalPlayer]->camera);
 		for (int i = 0; i < matrix->countCol; i++)
 			for (int j = 0; j < matrix->countRow; j++)
