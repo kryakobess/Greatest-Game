@@ -23,44 +23,51 @@ SDL_Event event;
 DateBase gDataBase;
 char gMyLogin[20];
 
+myServer gServer; myClient gClient;
+
 void DataProcessing(char* received, char* transmit) {
-	/*SAPP — Send All Players Positions
+	/*SPPN — Send Player Position by Name
 	SMP — Send My Position 
 	SPC — Send Players' Count
 	CTS — Connected to Server*/
 	char task[5] = {0};
-	sscanf(received, "{%[A-Z]}", task);
+	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in column format in transmit variable: "<name> <structure>". 
 	//Then server transmit information about all users(including current client) to client who requested it
-	//Transmit format: "{TASK}/name1/[Structure1]/name2/[Structure2]..." 
-	if (!strcmp("SAPP", task)){
+	// Receive format: "{TASK}[Name]"
+	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
+	if (!strcmp("SPPN", task)){
 		int trnLen = 0;
-		strcpy(transmit, "{SAAP}");
-		transmit[6] = '/';
-		for (int i = 0; i < gDataBase.countStructure; ++i) {
-			strcat(transmit, gDataBase.nameStructure[i]);
-			trnLen = strlen(transmit);
-			transmit[trnLen] = '/'; transmit[trnLen+1] = '[';
-			strcat(transmit, gDataBase.stringStructure[i]);
-			trnLen = strlen(transmit);
-			transmit[trnLen] = ']';
-			transmit[trnLen+1] = '/';
+		char name[128] = { 0 };
+		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]]", task, name);
+		int id = getIDStructure(name, &gDataBase);
+		sprintf(transmit, "{%s}/%s/[%d][", task, name, gDataBase.sizesStructure[id]);
+		int tLen = strlen(transmit);
+		int i = 0;
+		for (i = 0; i < gDataBase.sizesStructure[id]; ++i) {
+			transmit[tLen + i] = gDataBase.stringStructure[id][i];
 		}
-		transmit[trnLen + 1] = '\0';
+		transmit[tLen + i] = ']';
 	}
 	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base
-	//Receive format: "{TASK}[LoginName][structure]"
+	//Receive format: "{TASK}[LoginName][Size of Structure][structure]"
 	//Transmit format: "{TASK}[Answer]"
 	if (!strcmp("SMP", task)) {
-		char structure[1024] = { 0 };
 		char name[128] = { 0 };
-		sscanf(received, "[%[a-zA-Z ]][%[a-zA-Z ]]", name, structure);
+		int sizeStr = 0;
+		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]][%d][",task, name, &sizeStr);
 		int ID = getIDStructure(name, &gDataBase);
-		if (ID == -1) {
+		if (ID == -1 || sizeStr <= 0) {
 			strcpy(transmit, "{SMP}[ID_Error]");
 		}
 		else {
-			gDataBase.stringStructure[ID] = structure;
+			char sPointerBuf[256] = { 0 };
+			sprintf(sPointerBuf, "{%s}[%s][%d][", task, name, sizeStr);
+			int sPointer = strlen(sPointerBuf);
+			gDataBase.stringStructure[ID] = (char*)realloc(gDataBase.stringStructure[ID], (size_t)sizeStr);
+			for (int i = 0; i < sizeStr; ++i) {
+				gDataBase.stringStructure[ID][i] = received[sPointer + i];
+			}
 			strcpy(transmit, "{SMP}[Data_Sent]");
 		}
 	}
@@ -84,19 +91,19 @@ void DataProcessing(char* received, char* transmit) {
 	if (!strcmp("CTS", task)) {
 		char name[128] = { 0 };
 		char structure[1024] = { 0 };
-		sscanf(received, "[%[a-zA-Z ]][%[a-zA-Z ]]", name, structure);
+		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9! ]][%[a-zA-Z0-9 ]]", task, name, structure);
 		if (getIDStructure(name, &gDataBase) == -1) {
 			if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
-				sprintf(transmit, "{CTS}[ConnectionFail]");
+				strcpy(transmit, "{CTS}[ConnectionFail]");
 			}
 			else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
-				sprintf(transmit, "{CTS}[ConnectionFail]");
+				strcpy(transmit, "{CTS}[ConnectionFail]");
 			}
 			else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(strlen(structure) + 1, sizeof(char)))) {
-				sprintf(transmit, "{CTS}[ConnectionFail]");
+				strcpy(transmit, "{CTS}[ConnectionFail]");
 			}
 			else {
-				sprintf(gDataBase.nameStructure[gDataBase.countStructure], "%[a-zA-Z ]_character", name);
+				sprintf(gDataBase.nameStructure[gDataBase.countStructure], "%s_character", name);
 				strcpy(gDataBase.stringStructure[gDataBase.countStructure], structure);
 				sprintf(transmit, "{CTS}[Connected]");
 			}
@@ -153,7 +160,7 @@ bool loadMedia()
 	return success;
 }
 
-bool InitializeGameData(enum DataType dataType, char* login)
+bool InitializeGameData(enum DataType dataType)
 {
 	if (!IinitScreen(&gWindow, &gRenderer, &gMusic, WIDTH_w, HEIGHT_w)) {
 				printf("Initialization error!");
@@ -194,7 +201,10 @@ bool InitializeGameData(enum DataType dataType, char* login)
 			}
 		}
 		SDL_PollEvent(&event);
-		InitDateBase(&gDataBase);
+		if (dataType == HOST) {
+			InitDateBase(&gDataBase);
+			AddStructureInDateBase("Login_character", players[LocalPlayer], sizeof(character), &gDataBase);
+		}
 		/*AddStructureInDateBase("")*/
 	}
 	return true;
@@ -202,7 +212,7 @@ bool InitializeGameData(enum DataType dataType, char* login)
 
 
 
-int LaunchGame(myServer* server, myClient* client) {
+int LaunchGame() {
 	while (true) {
 		system("cls");
 		printf("					   --------------------------\n					   |Welcome to EFK Launcher!|\n				  	   --------------------------\n\n");
@@ -236,14 +246,14 @@ int LaunchGame(myServer* server, myClient* client) {
 			} while (lgLen > 20 && lgLen != 0);
 
 			if (choice == 1) {
-				if (StartServer(server, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) return HOST;
+				if (StartServer(&gServer, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) return HOST;
 				else {
 					printf("Error creating server!\n");
 					continue;
 				}
 			}
 			else {
-				if (ConnectToServer(client, (const char*)IP, (const int)port) == SUCCESSFUL_CLIENT_INSTALATION) return CLIENT;
+				if (ConnectToServer(&gClient, (const char*)IP, (const int)port) == SUCCESSFUL_CLIENT_INSTALATION) return CLIENT;
 				else {
 					printf("Error connecting to server!\n");
 					continue;

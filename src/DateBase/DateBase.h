@@ -17,6 +17,7 @@ typedef struct DateBase
 {
 	char* nameStructure[MAX_STRUCTURE_COUNT];
 	char* stringStructure[MAX_STRUCTURE_COUNT];
+	int sizesStructure[MAX_STRUCTURE_COUNT];
 	int countStructure;
 }DateBase;
 
