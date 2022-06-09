@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define HAVE_STRUCT_TIMESPEC
 #define MAXSIZECLENTS 50
+#define MAX_DATA_SIZE 1024
 
 
 #include <pthread.h>

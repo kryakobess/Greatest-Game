@@ -10,7 +10,7 @@
 
 
 void DataProcessing(char* received, char* transmit);
-int LaunchGame(myServer* server, myClient* client);
+int LaunchGame();
 bool InitializeGameData(enum DataType dataType);
 void GameLoop(enum DataType dataType);
 

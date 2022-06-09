@@ -32,8 +32,8 @@ void DataProcessing(char* received, char* transmit) {
 	CTS — Connected to Server*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z ]}", task);
-	//Saving structures from Data Base in column format in transmit variable: "<name> <structure>". 
-	//Then server transmit information about all users(including current client) to client who requested it
+	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
+	//Then server transmit information about chosen player(by name) to client who requested it
 	// Receive format: "{TASK}[Name]"
 	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
 	if (!strcmp("SPPN", task)){
@@ -74,9 +74,7 @@ void DataProcessing(char* received, char* transmit) {
 	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
 	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
 	if (!strcmp("SPC", task)) {
-		strcpy(transmit, "{SPC}");
-		transmit[5] = '/'; transmit[6] = gServer.ClientCount; transmit[7] = '/';
-		transmit[8] = '[';
+		sprintf(transmit, "{SPC}/%d/[", gDataBase.countStructure);
 		int trnLen = 0;
 		for (int i = 0; i < gDataBase.countStructure; ++i) {
 			strcat(transmit, gDataBase.nameStructure[i]);
@@ -86,12 +84,13 @@ void DataProcessing(char* received, char* transmit) {
 		}
 		transmit[trnLen + 1] = '\0';
 	}
-	//Receive format: "{TASK}[Login][Structure]"
+	//Receive format: "{TASK}[Login][Size of Structure][Structure]"
 	//Transmit format: "{TASK}[Answer]" where Answer == "Connected", Answer == "ConnectionFail" or Answer == "ReConnected".
 	if (!strcmp("CTS", task)) {
 		char name[128] = { 0 };
 		char structure[1024] = { 0 };
-		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9! ]][%[a-zA-Z0-9 ]]", task, name, structure);
+		int sizeStr = 0;
+		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]][%d][", task, name, &sizeStr);
 		if (getIDStructure(name, &gDataBase) == -1) {
 			if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
 				strcpy(transmit, "{CTS}[ConnectionFail]");
@@ -99,13 +98,20 @@ void DataProcessing(char* received, char* transmit) {
 			else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
 				strcpy(transmit, "{CTS}[ConnectionFail]");
 			}
-			else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(strlen(structure) + 1, sizeof(char)))) {
+			else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(sizeStr + 1, sizeof(char)))) {
 				strcpy(transmit, "{CTS}[ConnectionFail]");
 			}
 			else {
-				sprintf(gDataBase.nameStructure[gDataBase.countStructure], "%s_character", name);
-				strcpy(gDataBase.stringStructure[gDataBase.countStructure], structure);
-				sprintf(transmit, "{CTS}[Connected]");
+				char sPointerBuf[256] = { 0 };
+				sprintf(sPointerBuf, "{%s}[%s][%d][", task, name, sizeStr);
+				int sPointer = strlen(sPointerBuf);
+				sprintf(gDataBase.nameStructure[gDataBase.countStructure], "%s", name);
+				for (int i = 0; i < sizeStr; ++i) {
+					gDataBase.stringStructure[gDataBase.countStructure][i] = received[i + sPointer];
+				}
+				gDataBase.sizesStructure[gDataBase.countStructure] = sizeStr;
+				gDataBase.countStructure++;
+				strcpy(transmit, "{CTS}[Connected]");
 			}
 		}
 		else {
@@ -238,12 +244,13 @@ int LaunchGame() {
 			}
 
 			printf("Enter your Login(Less then 21 characters):\n");
+			fgets(gMyLogin, 21, stdin);
 			int lgLen = 0;
 			do {
 				fgets(gMyLogin, 21, stdin);
 				lgLen = strlen(gMyLogin);
-				gMyLogin[lgLen] = '\0';
-			} while (lgLen > 20 && lgLen != 0);
+				gMyLogin[lgLen-1] = '\0';
+			} while (lgLen > 20 || lgLen == 0 || gMyLogin[0] == '\0');
 
 			if (choice == 1) {
 				if (StartServer(&gServer, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) return HOST;

@@ -38,7 +38,7 @@ void* ListenClient(void* arg) {
 			data.transmit[1] = 'K';
 			data.transmit[2] = '\0';
 		}
-		ret = send(clientTask->socket, data.transmit, strlen(data.transmit) + 1, 0);
+		ret = send(clientTask->socket, data.transmit, MAX_DATA_SIZE, 0);
 		if (ret == SOCKET_ERROR)
 		{
 			return (void*)ERROR_SENDING_DATA;
@@ -119,7 +119,7 @@ void* SendToServer(void* arg) {
 	{
 		if (strlen(client->sentData) != 0)
 		{
-			int ret = send(client->socket, client->sentData, strlen(client->sentData), 0);
+			int ret = send(client->socket, client->sentData, MAX_DATA_SIZE, 0);
 			client->sentData[0] = '\0';
 			if (ret == SOCKET_ERROR)
 			{
