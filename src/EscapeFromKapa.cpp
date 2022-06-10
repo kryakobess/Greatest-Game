@@ -347,7 +347,21 @@ int LaunchGame() {
 void GetData(enum DataType dataType) {
 	if (dataType == CLIENT){}
 	if (dataType == HOST) {
-		//Îáíîâëÿåì âñå ñòðóêòóðû èãðîêîâ
+		if (playerCount != gDataBase.countStructure)
+		{
+			playerCount = gDataBase.countStructure;
+			for (int i = 0; i < playerCount; i++)
+			{
+				if (players[i] == NULL)
+				{
+					players[i] = (character*)calloc(1, sizeof(character));
+				}
+			}
+		}
+		for (int i = 0; i < playerCount; i++)
+		{
+			GetStructureFromDateBase(playerNames[i], (void**)&players[i], sizeof(character), &gDataBase);
+		}
 	}
 }
 
