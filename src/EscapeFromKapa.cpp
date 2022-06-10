@@ -306,6 +306,7 @@ bool InitializeGameData(enum DataType dataType)
 			InitDateBase(&gDataBase);
 			AddStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
 		}
+		strcpy(playerNames[LocalPlayer], gMyLogin);
 		/*AddStructureInDateBase("")*/
 	}
 	return true;
@@ -380,6 +381,7 @@ void GetData(enum DataType dataType) {
 			{
 				if (players[i] == NULL)
 				{
+					strcpy(playerNames[i], gDataBase.nameStructure[i]);
 					players[i] = (character*)calloc(1, sizeof(character));
 					BoxCollider* ptr;
 					AddColliderInArray(gCollidersArray, players[i]->feetCol = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_PLAYER_COL_ID));
@@ -404,7 +406,6 @@ void SendData(enum DataType dataType) {
 	if (dataType == CLIENT) {
 		char* structure;
 		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
-
 		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
 		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
 		int sentLen = strlen(gClient.sentData);
@@ -488,6 +489,10 @@ void GameLoop(enum DataType dataType)
 {
 	Mix_PlayMusic(gMusic, -1);
 	while (true) {
+		for (int i = 0; i < playerCount; ++i) {
+			printf("%s %d %d\n", playerNames[i], players[i]->model.posRect.x, players[i]->model.posRect.y);
+		}
+		printf("\n");
 		GetData(dataType);
 		Drawing();
 		if (!HandleInput(event, 1)) break;
