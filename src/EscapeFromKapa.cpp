@@ -172,6 +172,19 @@ void DataAcceptence(char* received)
 				if (players[i] == NULL)
 				{
 					players[i] = (character*)calloc(1, sizeof(character));
+					BoxCollider* ptr;
+					AddColliderInArray(gCollidersArray, players[i]->feetCol = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_PLAYER_COL_ID));
+					players[i]->feetCol->collider = ptr;
+
+					BoxCollider* ptr;
+					AddColliderInArray(gCollidersArray, players[i]->model.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_PLAYER_BODY_COL_ID));
+					players[i]->model.body->collider = ptr;
+
+					BoxCollider* ptr;
+					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
+					players[i]->trap.itemModel.body->collider = ptr;
+
+
 				}
 			}
 			char buf[100];
@@ -262,6 +275,9 @@ bool InitializeGameData(enum DataType dataType)
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] = true;
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][WALL_COL_ID] = true;
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][TRAP_COL_ID] = true;
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_TRAP_COL_ID] = true;
+		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_PLAYER_COL_ID] = true;
+
 		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
 		BG_WIDTH = gMatrix.countCol* WIDTH_TILE;
 		BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
