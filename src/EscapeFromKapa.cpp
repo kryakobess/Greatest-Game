@@ -22,14 +22,13 @@ character** players = (character**)malloc(sizeof(character*) * playersCount);
 SDL_Event event;
 DateBase gDataBase;
 char gMyLogin[20];
-
+bool gConnected = false;
 myServer gServer; myClient gClient;
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN Ч Send Player Position by Name
 	SMP Ч Send My Position 
-	SPC Ч Send Players' Count
-	CTS Ч Connected to Server*/
+	SPC Ч Send Players' Count*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -49,7 +48,8 @@ void DataProcessing(char* received, char* transmit) {
 		}
 		transmit[tLen + i] = ']';
 	}
-	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base
+	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
+	// If login do not exist in Data Base, we create new client's  row
 	//Receive format: "{TASK}[LoginName][Size of Structure][structure]"
 	//Transmit format: "{TASK}[Answer]"
 	if (!strcmp("SMP", task)) {
@@ -57,41 +57,7 @@ void DataProcessing(char* received, char* transmit) {
 		int sizeStr = 0;
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]][%d][",task, name, &sizeStr);
 		int ID = getIDStructure(name, &gDataBase);
-		if (ID == -1 || sizeStr <= 0) {
-			strcpy(transmit, "{SMP}[ID_Error]");
-		}
-		else {
-			char sPointerBuf[256] = { 0 };
-			sprintf(sPointerBuf, "{%s}[%s][%d][", task, name, sizeStr);
-			int sPointer = strlen(sPointerBuf);
-			gDataBase.stringStructure[ID] = (char*)realloc(gDataBase.stringStructure[ID], (size_t)sizeStr);
-			for (int i = 0; i < sizeStr; ++i) {
-				gDataBase.stringStructure[ID][i] = received[sPointer + i];
-			}
-			strcpy(transmit, "{SMP}[Data_Sent]");
-		}
-	}
-	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
-	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
-	if (!strcmp("SPC", task)) {
-		sprintf(transmit, "{SPC}/%d/[", gDataBase.countStructure);
-		int trnLen = 0;
-		for (int i = 0; i < gDataBase.countStructure; ++i) {
-			strcat(transmit, gDataBase.nameStructure[i]);
-			trnLen = strlen(transmit);
-			transmit[trnLen] = ']';
-			transmit[trnLen + 1] = '[';
-		}
-		transmit[trnLen + 1] = '\0';
-	}
-	//Receive format: "{TASK}[Login][Size of Structure][Structure]"
-	//Transmit format: "{TASK}[Answer]" where Answer == "Connected", Answer == "ConnectionFail" or Answer == "ReConnected".
-	if (!strcmp("CTS", task)) {
-		char name[128] = { 0 };
-		char structure[1024] = { 0 };
-		int sizeStr = 0;
-		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]][%d][", task, name, &sizeStr);
-		if (getIDStructure(name, &gDataBase) == -1) {
+		if (ID == -1) {
 			if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
 				strcpy(transmit, "{CTS}[ConnectionFail]");
 			}
@@ -115,7 +81,36 @@ void DataProcessing(char* received, char* transmit) {
 			}
 		}
 		else {
-			strcpy(transmit, "{CTS}[ReConnected]");
+			char sPointerBuf[256] = { 0 };
+			sprintf(sPointerBuf, "{%s}[%s][%d][", task, name, sizeStr);
+			int sPointer = strlen(sPointerBuf);
+			gDataBase.stringStructure[ID] = (char*)realloc(gDataBase.stringStructure[ID], (size_t)sizeStr);
+			for (int i = 0; i < sizeStr; ++i) {
+				gDataBase.stringStructure[ID][i] = received[sPointer + i];
+			}
+			gDataBase.sizesStructure[ID] = sizeStr;
+			strcpy(transmit, "{SMP}[Data_Sent]");
+		}
+	}
+	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
+	// Receive format: "{TASK}/ClientPlayersCount/"
+	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
+	if (!strcmp("SPC", task)) {
+		int curClientCount = 0;
+		sscanf(received, "{%[A-Z ]}/%d/", task, &curClientCount);
+		if (curClientCount != gDataBase.countStructure) {
+			sprintf(transmit, "{SPC}/%d/[", gDataBase.countStructure);
+			int trnLen = 0;
+			for (int i = 0; i < gDataBase.countStructure; ++i) {
+				strcat(transmit, gDataBase.nameStructure[i]);
+				trnLen = strlen(transmit);
+				transmit[trnLen] = ']';
+				transmit[trnLen + 1] = '[';
+			}
+			transmit[trnLen + 1] = '\0';
+		}
+		else {
+			sprintf(transmit, "{SPC}/%d/", -1);
 		}
 	}
 }
@@ -209,7 +204,7 @@ bool InitializeGameData(enum DataType dataType)
 		SDL_PollEvent(&event);
 		if (dataType == HOST) {
 			InitDateBase(&gDataBase);
-			AddStructureInDateBase("Login_character", players[LocalPlayer], sizeof(character), &gDataBase);
+			AddStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
 		}
 		/*AddStructureInDateBase("")*/
 	}
@@ -280,13 +275,14 @@ void GetData(enum DataType dataType) {
 
 void SendData(enum DataType dataType) {
 	if (dataType == CLIENT) {
-		//client.sentData = StructureToString();
-		// √енерирует запросы 
+		if (gConnected == false) {
+			/*sprintf(gClient.sentData, )*/
+		}
+
 
 	}
 	if (dataType == HOST) {
-		//—ќхран€ем в Ѕƒ свою структуру
-		//
+		RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
 	}
 }
 
