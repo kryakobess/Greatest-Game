@@ -25,10 +25,11 @@ myServer gServer; myClient gClient;
 int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 
+
 void DataProcessing(char* received, char* transmit) {
-	/*SPPN — Send Player Position by Name
-	SMP — Send My Position 
-	SPC — Send Players' Count*/
+	/*SPPN â€” Send Player Position by Name
+	SMP â€” Send My Position 
+	SPC â€” Send Players' Count*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -117,10 +118,10 @@ void DataProcessing(char* received, char* transmit) {
 
 void DataAcceptence(char* received)
 {
-	/*SPPN — Send Player Position by Name
-	SMP — Send My Position
-	SPC — Send Players' Count
-	CTS — Connected to Server*/
+	/*SPPN â€” Send Player Position by Name
+	SMP â€” Send My Position
+	SPC â€” Send Players' Count
+	CTS â€” Connected to Server*/
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -351,7 +352,7 @@ int LaunchGame() {
 void GetData(enum DataType dataType) {
 	if (dataType == CLIENT){}
 	if (dataType == HOST) {
-		//Îáíîâëÿåì âñå ñòðóêòóðû èãðîêîâ
+		//ÃŽÃ¡Ã­Ã®Ã¢Ã«Ã¿Ã¥Ã¬ Ã¢Ã±Ã¥ Ã±Ã²Ã°Ã³ÃªÃ²Ã³Ã°Ã» Ã¨Ã£Ã°Ã®ÃªÃ®Ã¢
 	}
 }
 
