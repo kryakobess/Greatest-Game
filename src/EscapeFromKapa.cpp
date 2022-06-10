@@ -176,15 +176,11 @@ void DataAcceptence(char* received)
 					AddColliderInArray(gCollidersArray, players[i]->feetCol = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_PLAYER_COL_ID));
 					players[i]->feetCol->collider = ptr;
 
-					BoxCollider* ptr;
 					AddColliderInArray(gCollidersArray, players[i]->model.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_PLAYER_BODY_COL_ID));
 					players[i]->model.body->collider = ptr;
 
-					BoxCollider* ptr;
 					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
 					players[i]->trap.itemModel.body->collider = ptr;
-
-
 				}
 			}
 			char buf[100];
@@ -290,7 +286,7 @@ bool InitializeGameData(enum DataType dataType)
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
-		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword, gCollidersArray, SWORD_COL_ID)) return false;
+		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword, gCollidersArray, ONLINE_SWORD_COL_ID)) return false;
 		players[LocalPlayer]->hasSword = true;
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
@@ -377,6 +373,15 @@ void GetData(enum DataType dataType) {
 				if (players[i] == NULL)
 				{
 					players[i] = (character*)calloc(1, sizeof(character));
+					BoxCollider* ptr;
+					AddColliderInArray(gCollidersArray, players[i]->feetCol = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_PLAYER_COL_ID));
+					players[i]->feetCol->collider = ptr;
+
+					AddColliderInArray(gCollidersArray, players[i]->model.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_PLAYER_BODY_COL_ID));
+					players[i]->model.body->collider = ptr;
+
+					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
+					players[i]->trap.itemModel.body->collider = ptr;
 				}
 			}
 		}
