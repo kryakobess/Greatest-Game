@@ -21,14 +21,15 @@ character* players[MAX_PLAYER_COUNT];
 SDL_Event event;
 DateBase gDataBase;
 char gMyLogin[20];
-bool gConnected = false;
 myServer gServer; myClient gClient;
 int playerCount = 1;
+char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
+
 
 void DataProcessing(char* received, char* transmit) {
-	/*SPPN — Send Player Position by Name
-	SMP — Send My Position 
-	SPC — Send Players' Count*/
+	/*SPPN â€” Send Player Position by Name
+	SMP â€” Send My Position 
+	SPC â€” Send Players' Count*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -115,13 +116,12 @@ void DataProcessing(char* received, char* transmit) {
 	}
 }
 
-char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 void DataAcceptence(char* received)
 {
-	/*SPPN — Send Player Position by Name
-	SMP — Send My Position
-	SPC — Send Players' Count
-	CTS — Connected to Server*/
+	/*SPPN â€” Send Player Position by Name
+	SMP â€” Send My Position
+	SPC â€” Send Players' Count
+	CTS â€” Connected to Server*/
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -129,7 +129,7 @@ void DataAcceptence(char* received)
 	// Receive format: "{TASK}[Name]"
 	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
 	if (!strcmp("SPPN", task)) {
-		int sizeStructure;
+		int sizeStructure = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%s}/%s/[%d]", task, name, sizeStructure);
 		int signCount = 0;
@@ -296,8 +296,6 @@ bool InitializeGameData(enum DataType dataType)
 	return true;
 }
 
-
-
 int LaunchGame() {
 	while (true) {
 		system("cls");
@@ -354,17 +352,26 @@ int LaunchGame() {
 void GetData(enum DataType dataType) {
 	if (dataType == CLIENT){}
 	if (dataType == HOST) {
-		//Îáíîâëÿåì âñå ñòðóêòóðû èãðîêîâ
+		//ÃŽÃ¡Ã­Ã®Ã¢Ã«Ã¿Ã¥Ã¬ Ã¢Ã±Ã¥ Ã±Ã²Ã°Ã³ÃªÃ²Ã³Ã°Ã» Ã¨Ã£Ã°Ã®ÃªÃ®Ã¢
 	}
 }
 
 void SendData(enum DataType dataType) {
 	if (dataType == CLIENT) {
-		if (gConnected == false) {
-			/*sprintf(gClient.sentData, )*/
+		char* structure;
+		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
+
+		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
+		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
+		int sentLen = strlen(gClient.sentData);
+		int i = 0;
+		for (i = 0; i < sizeof(character); i++) {
+			gClient.sentData[sentLen + i] = structure[i];
 		}
-
-
+		gClient.sentData[sentLen + i] = ']';
+		for (i = 0; i < playerCount; ++i) {
+			sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+		}
 	}
 	if (dataType == HOST) {
 		RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
@@ -375,10 +382,10 @@ void Drawing() {
 	SDL_RenderClear(gRenderer);
 	SDL_RenderCopy(gRenderer, gBackground, &players[LocalPlayer]->camera, NULL);
 	DrawLabirint(gRenderer, &players[LocalPlayer]->camera, &gMatrix);
-	for (int i = 0; i < playersCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
+	for (int i = 0; i < playerCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
 	RenderObject(&rockDown, gRenderer);
 	RenderObject(&sampleRock, gRenderer);
-	for (int i = playersCount - 1; i >= LocalPlayer; --i) {
+	for (int i = playerCount - 1; i >= LocalPlayer; --i) {
 		if (players[i]->hasSword && players[i]->sword.isActive) {
 			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][1];
 			if (players[i]->spriteNumber[0] == KEY_PRESS_SURFACE_UP) {
@@ -428,7 +435,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
+	HandleMovement(players, movement, objs, objNumber, playerCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
 	return true;
 }
 
