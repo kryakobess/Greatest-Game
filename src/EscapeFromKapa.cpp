@@ -22,7 +22,6 @@ character** players = (character**)malloc(sizeof(character*) * playersCount);
 SDL_Event event;
 DateBase gDataBase;
 char gMyLogin[20];
-bool gConnected = false;
 myServer gServer; myClient gClient;
 
 void DataProcessing(char* received, char* transmit) {
@@ -211,8 +210,6 @@ bool InitializeGameData(enum DataType dataType)
 	return true;
 }
 
-
-
 int LaunchGame() {
 	while (true) {
 		system("cls");
@@ -275,11 +272,17 @@ void GetData(enum DataType dataType) {
 
 void SendData(enum DataType dataType) {
 	if (dataType == CLIENT) {
-		if (gConnected == false) {
-			/*sprintf(gClient.sentData, )*/
+		char* structure;
+		sprintf(gClient.sentData, "{SPC}/%d/", playersCount);
+
+		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
+		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
+		int sentLen = strlen(gClient.sentData);
+		int i = 0;
+		for (i = 0; i < sizeof(character); i++) {
+			gClient.sentData[sentLen + i] = structure[i];
 		}
-
-
+		gClient[sentLen + i] = '\0';
 	}
 	if (dataType == HOST) {
 		RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
