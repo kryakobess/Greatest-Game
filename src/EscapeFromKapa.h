@@ -11,6 +11,7 @@
 #define MAX_PLAYER_COUNT 10
 #define MAX_LOGIN_SIZE 20
 
+void DataAcceptence(char* received);
 void DataProcessing(char* received, char* transmit);
 int LaunchGame();
 bool InitializeGameData(enum DataType dataType);

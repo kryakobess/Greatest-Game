@@ -118,20 +118,12 @@ void DataProcessing(char* received, char* transmit) {
 
 void DataAcceptence(char* received)
 {
-	/*SPPN — Send Player Position by Name
-	SMP — Send My Position
-	SPC — Send Players' Count
-	CTS — Connected to Server*/
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
-	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
-	//Then server transmit information about chosen player(by name) to client who requested it
-	// Receive format: "{TASK}[Name]"
-	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
 	if (!strcmp("SPPN", task)) {
 		int sizeStructure;
 		char name[128] = { 0 };
-		sscanf(received, "{%s}/%s/[%d]", task, name, &sizeStructure);
+		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
 		int signCount = 0;
 		int d = sizeStructure;
 		while (d > 0)
@@ -154,10 +146,6 @@ void DataAcceptence(char* received)
 			}
 		}
 	}
-	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
-	// If login do not exist in Data Base, we create new client's  row
-	//Receive format: "{TASK}[LoginName][Size of Structure][structure]"
-	//Transmit format: "{TASK}[Answer]"
 	if (!strcmp("SMP", task)) {
 		char status[10] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z_ ]", task, status);
@@ -174,11 +162,9 @@ void DataAcceptence(char* received)
 			//OK
 		}
 	}
-	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
-	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
 	if (!strcmp("SPC", task)) {
 		int clientCount;
-		sscanf(received, "{[A-Z ]}/%d/", task, &clientCount);
+		sscanf(received, "{%[A-Z ]}/%d/", task, &clientCount);
 		if (clientCount != -1)
 		{
 			playerCount = clientCount;
@@ -190,18 +176,20 @@ void DataAcceptence(char* received)
 				}
 			}
 			char buf[100];
-			sprintf(buf, "{[A-Z ]}/%d/", task, &clientCount);
+			int c = strlen(task);
+			sprintf(buf, "{%s}/%d/", task, clientCount);
 			int shift = strlen(buf);
 			for (int nameID = 0; nameID < clientCount; nameID++)
 			{
 				shift++;
-				char name[MAX_LOGIN_SIZE];
+				char name[MAX_LOGIN_SIZE] = {0};
 				int i = 0;
 				while (received[shift + i] != ']')
 				{
 					name[i] = received[shift + i];
 					i++;
 				}
+				shift += i;
 				name[i] = '\0';
 				shift++;
 				strcpy(playerNames[nameID], name);
@@ -383,10 +371,10 @@ void Drawing() {
 	SDL_RenderClear(gRenderer);
 	SDL_RenderCopy(gRenderer, gBackground, &players[LocalPlayer]->camera, NULL);
 	DrawLabirint(gRenderer, &players[LocalPlayer]->camera, &gMatrix);
-	for (int i = 0; i < playersCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
+	for (int i = 0; i < playerCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
 	RenderObject(&rockDown, gRenderer);
 	RenderObject(&sampleRock, gRenderer);
-	for (int i = playersCount - 1; i >= LocalPlayer; --i) {
+	for (int i = playerCount - 1; i >= LocalPlayer; --i) {
 		if (players[i]->hasSword && players[i]->sword.isActive) {
 			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][1];
 			if (players[i]->spriteNumber[0] == KEY_PRESS_SURFACE_UP) {
@@ -436,7 +424,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
+	HandleMovement(players, movement, objs, objNumber, playerCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
 	return true;
 }
 
