@@ -21,15 +21,14 @@ character* players[MAX_PLAYER_COUNT];
 SDL_Event event;
 DateBase gDataBase;
 char gMyLogin[20];
-bool gConnected = false;
 myServer gServer; myClient gClient;
 int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 
 void DataProcessing(char* received, char* transmit) {
-	/*SPPN — Send Player Position by Name
-	SMP — Send My Position 
-	SPC — Send Players' Count*/
+	/*SPPN â€” Send Player Position by Name
+	SMP â€” Send My Position 
+	SPC â€” Send Players' Count*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -121,7 +120,7 @@ void DataAcceptence(char* received)
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
 	if (!strcmp("SPPN", task)) {
-		int sizeStructure;
+		int sizeStructure = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
 		int signCount = 0;
@@ -292,8 +291,6 @@ bool InitializeGameData(enum DataType dataType)
 	return true;
 }
 
-
-
 int LaunchGame() {
 	while (true) {
 		system("cls");
@@ -350,17 +347,26 @@ int LaunchGame() {
 void GetData(enum DataType dataType) {
 	if (dataType == CLIENT){}
 	if (dataType == HOST) {
-		//Îáíîâëÿåì âñå ñòðóêòóðû èãðîêîâ
+		//ÃŽÃ¡Ã­Ã®Ã¢Ã«Ã¿Ã¥Ã¬ Ã¢Ã±Ã¥ Ã±Ã²Ã°Ã³ÃªÃ²Ã³Ã°Ã» Ã¨Ã£Ã°Ã®ÃªÃ®Ã¢
 	}
 }
 
 void SendData(enum DataType dataType) {
 	if (dataType == CLIENT) {
-		if (gConnected == false) {
-			/*sprintf(gClient.sentData, )*/
+		char* structure;
+		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
+
+		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
+		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
+		int sentLen = strlen(gClient.sentData);
+		int i = 0;
+		for (i = 0; i < sizeof(character); i++) {
+			gClient.sentData[sentLen + i] = structure[i];
 		}
-
-
+		gClient.sentData[sentLen + i] = ']';
+		for (i = 0; i < playerCount; ++i) {
+			sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+		}
 	}
 	if (dataType == HOST) {
 		RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
