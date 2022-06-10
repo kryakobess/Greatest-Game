@@ -17,12 +17,13 @@ int objNumber = 3;
 int BG_WIDTH = 3800;
 int BG_HEIGHT = 2170;
 SDL_Rect camera = { BG_WIDTH / 2, BG_HEIGHT / 2, WIDTH_w, HEIGHT_w };
-int playersCount = 1;
-character** players = (character**)malloc(sizeof(character*) * playersCount);
+character* players[MAX_PLAYER_COUNT];
 SDL_Event event;
 DateBase gDataBase;
 char gMyLogin[20];
 myServer gServer; myClient gClient;
+int playerCount = 1;
+char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
@@ -114,6 +115,92 @@ void DataProcessing(char* received, char* transmit) {
 	}
 }
 
+void DataAcceptence(char* received)
+{
+	/*SPPN — Send Player Position by Name
+	SMP — Send My Position
+	SPC — Send Players' Count
+	CTS — Connected to Server*/
+	char task[5] = { 0 };
+	sscanf(received, "{%[A-Z ]}", task);
+	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
+	//Then server transmit information about chosen player(by name) to client who requested it
+	// Receive format: "{TASK}[Name]"
+	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
+	if (!strcmp("SPPN", task)) {
+		int sizeStructure = 0;
+		char name[128] = { 0 };
+		sscanf(received, "{%s}/%s/[%d]", task, name, sizeStructure);
+		int signCount = 0;
+		int d = sizeStructure;
+		while (d > 0)
+		{
+			d /= 10;
+			signCount++;
+		}
+		int shiftBeforeStructure = 1 + strlen(task) + 1 + 1 + strlen(name) + 1 + 1 + signCount + 1;
+		char* structure = (char*)calloc(sizeStructure, sizeof(char));
+		for (int i = 0; i < sizeStructure; i++)
+			structure[i] = received[shiftBeforeStructure + i];
+		for (int i = 0; i < MAX_PLAYER_COUNT; i++)
+		{
+			if (!strcmp(name, playerNames[i]))
+			{
+				
+				//str -> char
+				//cpy
+				break;
+			}
+		}
+	}
+	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
+	// If login do not exist in Data Base, we create new client's  row
+	//Receive format: "{TASK}[LoginName][Size of Structure][structure]"
+	//Transmit format: "{TASK}[Answer]"
+	if (!strcmp("SMP", task)) {
+		char status[10] = { 0 };
+		sscanf(received, "{%[A-Z ]}[%[a-zA-Z_ ]", task, status);
+		if (!strcmp(status, "ConnectionFail"))
+		{
+			//?
+		}
+		if (!strcmp(status, "Connected"))
+		{
+			//OK
+		}
+		if (!strcmp(status, "Data_Sent"))
+		{
+			//OK
+		}
+	}
+	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
+	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
+	if (!strcmp("SPC", task)) {
+		int clientCount;
+		sscanf(received, "{[A-Z ]}/%d/", task, &clientCount);
+		if (clientCount != -1)
+		{
+			char buf[100];
+			sprintf(buf, "{[A-Z ]}/%d/", task, &clientCount);
+			int shift = strlen(buf);
+			for (int nameID = 0; nameID < clientCount; nameID++)
+			{
+				shift++;
+				char name[MAX_LOGIN_SIZE];
+				int i = 0;
+				while (received[shift + i] != ']')
+				{
+					name[i] = received[shift + i];
+					i++;
+				}
+				name[i] = '\0';
+				shift++;
+				strcpy(playerNames[nameID], name);
+			}
+		}
+	}
+}
+
 bool loadMedia()
 {
 	//Loading success flag
@@ -185,9 +272,7 @@ bool InitializeGameData(enum DataType dataType)
 		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
-		for (int i = 0; i < playersCount; ++i) {
-			players[i] = (character*)malloc(sizeof(character));
-		}
+		players[LocalPlayer] = (character*)malloc(sizeof(character));
 		if (!characterInit(players[LocalPlayer], gSpriteTexture, { WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25 },
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
@@ -236,13 +321,13 @@ int LaunchGame() {
 			}
 
 			printf("Enter your Login(Less then 21 characters):\n");
-			fgets(gMyLogin, 21, stdin);
+			fgets(gMyLogin, MAX_LOGIN_SIZE+1, stdin);
 			int lgLen = 0;
 			do {
-				fgets(gMyLogin, 21, stdin);
+				fgets(gMyLogin, MAX_LOGIN_SIZE + 1, stdin);
 				lgLen = strlen(gMyLogin);
 				gMyLogin[lgLen-1] = '\0';
-			} while (lgLen > 20 || lgLen == 0 || gMyLogin[0] == '\0');
+			} while (lgLen > MAX_LOGIN_SIZE || lgLen == 0 || gMyLogin[0] == '\0');
 
 			if (choice == 1) {
 				if (StartServer(&gServer, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) return HOST;
@@ -273,7 +358,7 @@ void GetData(enum DataType dataType) {
 void SendData(enum DataType dataType) {
 	if (dataType == CLIENT) {
 		char* structure;
-		sprintf(gClient.sentData, "{SPC}/%d/", playersCount);
+		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
 
 		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
 		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
@@ -282,9 +367,10 @@ void SendData(enum DataType dataType) {
 		for (i = 0; i < sizeof(character); i++) {
 			gClient.sentData[sentLen + i] = structure[i];
 		}
-		gClient.sentData[sentLen + i] = '\0';
-
-		
+		gClient.sentData[sentLen + i] = ']';
+		for (i = 0; i < playerCount; ++i) {
+			sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+		}
 	}
 	if (dataType == HOST) {
 		RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
@@ -295,10 +381,10 @@ void Drawing() {
 	SDL_RenderClear(gRenderer);
 	SDL_RenderCopy(gRenderer, gBackground, &players[LocalPlayer]->camera, NULL);
 	DrawLabirint(gRenderer, &players[LocalPlayer]->camera, &gMatrix);
-	for (int i = 0; i < playersCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
+	for (int i = 0; i < playerCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
 	RenderObject(&rockDown, gRenderer);
 	RenderObject(&sampleRock, gRenderer);
-	for (int i = playersCount - 1; i >= LocalPlayer; --i) {
+	for (int i = playerCount - 1; i >= LocalPlayer; --i) {
 		if (players[i]->hasSword && players[i]->sword.isActive) {
 			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][1];
 			if (players[i]->spriteNumber[0] == KEY_PRESS_SURFACE_UP) {
@@ -348,7 +434,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
-	HandleMovement(players, movement, objs, objNumber, playersCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
+	HandleMovement(players, movement, objs, objNumber, playerCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
 	return true;
 }
 
