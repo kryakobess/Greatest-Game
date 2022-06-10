@@ -24,6 +24,7 @@ char gMyLogin[20];
 bool gConnected = false;
 myServer gServer; myClient gClient;
 int playerCount = 1;
+char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
@@ -115,7 +116,6 @@ void DataProcessing(char* received, char* transmit) {
 	}
 }
 
-char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 void DataAcceptence(char* received)
 {
 	/*SPPN — Send Player Position by Name
@@ -143,13 +143,13 @@ void DataAcceptence(char* received)
 		char* structure = (char*)calloc(sizeStructure, sizeof(char));
 		for (int i = 0; i < sizeStructure; i++)
 			structure[i] = received[shiftBeforeStructure + i];
-		for (int i = 0; i < MAX_PLAYER_COUNT; i++)
+		for (int id = 0; id < MAX_PLAYER_COUNT; id++)
 		{
-			if (!strcmp(name, playerNames[i]))
+			if (!strcmp(name, playerNames[id]))
 			{
-				
-				//str -> char
-				//cpy
+				LoadStructureFromString((void**) & players[id], sizeof(character), structure);
+				players[id]->feetCol = NULL;
+				players[id]->model.body = NULL;
 				break;
 			}
 		}
@@ -181,6 +181,14 @@ void DataAcceptence(char* received)
 		sscanf(received, "{[A-Z ]}/%d/", task, &clientCount);
 		if (clientCount != -1)
 		{
+			playerCount = clientCount;
+			for (int i = 0; i < playerCount; i++)
+			{
+				if (players[i] == NULL)
+				{
+					players[i] = (character*)calloc(1, sizeof(character));
+				}
+			}
 			char buf[100];
 			sprintf(buf, "{[A-Z ]}/%d/", task, &clientCount);
 			int shift = strlen(buf);
