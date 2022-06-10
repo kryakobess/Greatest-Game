@@ -25,7 +25,6 @@ myServer gServer; myClient gClient;
 int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 
-
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
 	SMP — Send My Position 
@@ -118,20 +117,12 @@ void DataProcessing(char* received, char* transmit) {
 
 void DataAcceptence(char* received)
 {
-	/*SPPN — Send Player Position by Name
-	SMP — Send My Position
-	SPC — Send Players' Count
-	CTS — Connected to Server*/
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
-	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
-	//Then server transmit information about chosen player(by name) to client who requested it
-	// Receive format: "{TASK}[Name]"
-	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
 	if (!strcmp("SPPN", task)) {
 		int sizeStructure = 0;
 		char name[128] = { 0 };
-		sscanf(received, "{%s}/%s/[%d]", task, name, sizeStructure);
+		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
 		int signCount = 0;
 		int d = sizeStructure;
 		while (d > 0)
@@ -143,21 +134,17 @@ void DataAcceptence(char* received)
 		char* structure = (char*)calloc(sizeStructure, sizeof(char));
 		for (int i = 0; i < sizeStructure; i++)
 			structure[i] = received[shiftBeforeStructure + i];
-		for (int i = 0; i < MAX_PLAYER_COUNT; i++)
+		for (int id = 0; id < MAX_PLAYER_COUNT; id++)
 		{
-			if (!strcmp(name, playerNames[i]))
+			if (!strcmp(name, playerNames[id]))
 			{
-				
-				//str -> char
-				//cpy
+				LoadStructureFromString((void**) & players[id], sizeof(character), structure);
+				players[id]->feetCol = NULL;
+				players[id]->model.body = NULL;
 				break;
 			}
 		}
 	}
-	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
-	// If login do not exist in Data Base, we create new client's  row
-	//Receive format: "{TASK}[LoginName][Size of Structure][structure]"
-	//Transmit format: "{TASK}[Answer]"
 	if (!strcmp("SMP", task)) {
 		char status[10] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z_ ]", task, status);
@@ -174,26 +161,34 @@ void DataAcceptence(char* received)
 			//OK
 		}
 	}
-	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
-	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
 	if (!strcmp("SPC", task)) {
 		int clientCount;
-		sscanf(received, "{[A-Z ]}/%d/", task, &clientCount);
+		sscanf(received, "{%[A-Z ]}/%d/", task, &clientCount);
 		if (clientCount != -1)
 		{
+			playerCount = clientCount;
+			for (int i = 0; i < playerCount; i++)
+			{
+				if (players[i] == NULL)
+				{
+					players[i] = (character*)calloc(1, sizeof(character));
+				}
+			}
 			char buf[100];
-			sprintf(buf, "{[A-Z ]}/%d/", task, &clientCount);
+			int c = strlen(task);
+			sprintf(buf, "{%s}/%d/", task, clientCount);
 			int shift = strlen(buf);
 			for (int nameID = 0; nameID < clientCount; nameID++)
 			{
 				shift++;
-				char name[MAX_LOGIN_SIZE];
+				char name[MAX_LOGIN_SIZE] = {0};
 				int i = 0;
 				while (received[shift + i] != ']')
 				{
 					name[i] = received[shift + i];
 					i++;
 				}
+				shift += i;
 				name[i] = '\0';
 				shift++;
 				strcpy(playerNames[nameID], name);
