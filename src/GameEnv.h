@@ -3,7 +3,6 @@
 
 #define WIDTH_w 1280
 #define HEIGHT_w 720
-#define LocalPlayer 0
 
 #include <SDL.h>
 #include <math.h>

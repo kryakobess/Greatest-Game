@@ -24,6 +24,7 @@ char gMyLogin[20];
 myServer gServer; myClient gClient;
 int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
+int LocalPlayer = 0;
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
@@ -138,9 +139,16 @@ void DataAcceptence(char* received)
 		{
 			if (!strcmp(name, playerNames[id]))
 			{
-				LoadStructureFromString((void**) & players[id], sizeof(character), structure);
-				players[id]->feetCol = NULL;
-				players[id]->model.body = NULL;
+				if (id != LocalPlayer)
+				{
+					Collider* feet = players[id]->feetCol;
+					Collider* body = players[id]->model.body;
+					Collider* trap = players[id]->trap.itemModel.body;
+					LoadStructureFromString((void**)&players[id], sizeof(character), structure);
+					players[id]->feetCol = feet;
+					players[id]->model.body = body;
+					players[id]->trap.itemModel.body = trap;
+				}
 				break;
 			}
 		}
@@ -471,7 +479,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
-	HandleMovement(players, movement, objs, objNumber, playerCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT);
+	HandleMovement(players, movement, objs, objNumber, playerCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT, LocalPlayer);
 	return true;
 }
 

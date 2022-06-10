@@ -52,7 +52,7 @@ void ActivateTrap(gameItem* trap, int keyFlag, SDL_Rect* posRect) {
 	}
 }
 
-void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray* colArr, SDL_Rect* camera) {
+void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray* colArr, SDL_Rect* camera, int LocalPlayer) {
 	for (int i = 0; i < pCount; ++i) {
 		if (players[i]->trap.isActive) {
 			players[i]->trap.ItemFunc(&players[i]->trap, false, &players[i]->model.posRect);
@@ -184,7 +184,7 @@ void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift)
 	}
 }
 
-void SavePlayersPosition(character** p, int pCount, int yShift, int xShift) {
+void SavePlayersPosition(character** p, int pCount, int yShift, int xShift, int LocalPlayer) {
 	for (int i = 0; i < pCount; ++i) {
 		if (i != LocalPlayer) {
 			((BoxCollider*)(p[i]->model.body->collider))->rect.x -= xShift;
@@ -220,14 +220,14 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	c->camera.x += xShift; c->camera.y += yShift;
 }
 
-void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix, int BG_WIDTH, int BG_HEIGHT)
+void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix, int BG_WIDTH, int BG_HEIGHT, int LocalPlayer)
 {
 	if (c[LocalPlayer]->stamina < 100) {
 		c[LocalPlayer]->stamina += 0.5;
 		if (c[LocalPlayer]->stamina >= 100) c[LocalPlayer]->canRun = true;
 	}
 	c[LocalPlayer]->VelCoef = velCoef;
-	ReleaseSpikes(c, playersCount, velCoef, colArr, &c[LocalPlayer]->camera);
+	ReleaseSpikes(c, playersCount, velCoef, colArr, &c[LocalPlayer]->camera, LocalPlayer);
 
 	int yShift = 0; int xShift = 0;
 	int xPosShift = 0; int yPosShift = 0;
@@ -273,7 +273,7 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	xPosShift *= c[LocalPlayer]->VelCoef; yPosShift *= c[LocalPlayer]->VelCoef;
 	moveCharacter(c[LocalPlayer], xShift, yShift, xPosShift, yPosShift);
 	SaveObjPosition(objs, objCount, yShift, xShift);
-	SavePlayersPosition(c, playersCount, yShift , xShift);
+	SavePlayersPosition(c, playersCount, yShift , xShift, LocalPlayer);
 	//printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
 	//Shift box Colliders
 	int i = 0;
@@ -305,7 +305,7 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 		if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID])
 		{
 			moveCharacter(c[LocalPlayer], -xShift, -yShift, -xPosShift, -yPosShift);
-			SavePlayersPosition(c, playersCount, -yShift, -xShift);
+			SavePlayersPosition(c, playersCount, -yShift, -xShift, LocalPlayer);
 			SaveObjPosition(objs, objCount, -yShift, -xShift);
 		}
 	} while (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID]);
