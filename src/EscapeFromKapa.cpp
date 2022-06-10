@@ -131,7 +131,7 @@ void DataAcceptence(char* received)
 	if (!strcmp("SPPN", task)) {
 		int sizeStructure;
 		char name[128] = { 0 };
-		sscanf(received, "{%s}/%s/[%d]", task, name, sizeStructure);
+		sscanf(received, "{%s}/%s/[%d]", task, name, &sizeStructure);
 		int signCount = 0;
 		int d = sizeStructure;
 		while (d > 0)
