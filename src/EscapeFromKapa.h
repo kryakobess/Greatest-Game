@@ -8,6 +8,8 @@
 #include "DateBase/DateBase.h"
 #include "Network/netlib.h"
 
+#define MAX_PLAYER_COUNT 10
+#define MAX_LOGIN_SIZE 20
 
 void DataProcessing(char* received, char* transmit);
 int LaunchGame();

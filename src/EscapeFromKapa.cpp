@@ -282,7 +282,9 @@ void SendData(enum DataType dataType) {
 		for (i = 0; i < sizeof(character); i++) {
 			gClient.sentData[sentLen + i] = structure[i];
 		}
-		gClient[sentLen + i] = '\0';
+		gClient.sentData[sentLen + i] = '\0';
+
+		
 	}
 	if (dataType == HOST) {
 		RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
