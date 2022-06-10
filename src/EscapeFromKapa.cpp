@@ -326,14 +326,20 @@ int LaunchGame() {
 			} while (lgLen > MAX_LOGIN_SIZE || lgLen == 0 || gMyLogin[0] == '\0');
 
 			if (choice == 1) {
-				if (StartServer(&gServer, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) return HOST;
+				if (StartServer(&gServer, (const char*)IP, (const int)port) == SUCCESSFUL_SERVER_INSTALATION) {
+					gServer.DataProcessing = DataProcessing;
+					return HOST;
+				}
 				else {
 					printf("Error creating server!\n");
 					continue;
 				}
 			}
 			else {
-				if (ConnectToServer(&gClient, (const char*)IP, (const int)port) == SUCCESSFUL_CLIENT_INSTALATION) return CLIENT;
+				if (ConnectToServer(&gClient, (const char*)IP, (const int)port) == SUCCESSFUL_CLIENT_INSTALATION) {
+					gClient.DataAcceptance = DataAcceptence;
+					return CLIENT;
+				}
 				else {
 					printf("Error connecting to server!\n");
 					continue;

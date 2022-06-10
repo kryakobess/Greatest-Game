@@ -53,7 +53,6 @@ bool AddColliderInArray(CollidersArray* colArr, Collider* col)
 
 Collider* CreateCollider(void* col, ColliderType colType, size_t id)
 {
-	printf("Collider[id=%d]\n", id);
 	Collider* collider = (Collider*)calloc(1, sizeof(Collider));
 	collider->collider = col;
 	collider->colliderType = colType;
