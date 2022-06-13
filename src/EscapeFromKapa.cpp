@@ -125,7 +125,7 @@ void DataAcceptence(char* received)
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
 		char buf[100];
-		sprintf(buf, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d][", task, name, sizeStructure);
+		sprintf(buf, "{%s}/%s/[%d][", task, name, sizeStructure);
 		int shiftBeforeStructure = strlen(buf);
 		char* structure = (char*)calloc(sizeStructure, sizeof(char));
 		for (int i = 0; i < sizeStructure; i++)
@@ -186,6 +186,8 @@ void DataAcceptence(char* received)
 
 					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
 					players[i]->trap.itemModel.body->collider = ptr;
+
+					players[i]->model.texture = gSpriteTexture;
 				}
 			}
 			char buf[100];
