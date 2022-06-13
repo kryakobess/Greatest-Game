@@ -124,18 +124,13 @@ void DataAcceptence(char* received)
 		int sizeStructure = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
-		int signCount = 0;
-		int d = sizeStructure;
-		while (d > 0)
-		{
-			d /= 10;
-			signCount++;
-		}
-		int shiftBeforeStructure = 1 + strlen(task) + 1 + 1 + strlen(name) + 1 + 1 + signCount + 1;
+		char buf[100];
+		sprintf(buf, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d][", task, name, sizeStructure);
+		int shiftBeforeStructure = strlen(buf);
 		char* structure = (char*)calloc(sizeStructure, sizeof(char));
 		for (int i = 0; i < sizeStructure; i++)
 			structure[i] = received[shiftBeforeStructure + i];
-		for (int id = 0; id < MAX_PLAYER_COUNT; id++)
+		for (int id = 0; id < playerCount; id++)
 		{
 			if (!strcmp(name, playerNames[id]))
 			{
@@ -148,6 +143,8 @@ void DataAcceptence(char* received)
 					players[id]->feetCol = feet;
 					players[id]->model.body = body;
 					players[id]->trap.itemModel.body = trap;
+
+					players[id]->model.texture = gSpriteTexture;
 				}
 				break;
 			}
