@@ -392,12 +392,21 @@ void GetData(enum DataType dataType) {
 
 					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
 					players[i]->trap.itemModel.body->collider = ptr;
+
+					players[i]->model.texture = gSpriteTexture;
 				}
 			}
 		}
 		for (int i = 0; i < playerCount; i++)
 		{
+			Collider* feet = players[i]->feetCol;
+			Collider* body = players[i]->model.body;
+			Collider* trap = players[i]->trap.itemModel.body;
 			GetStructureFromDateBase(playerNames[i], (void**)&players[i], sizeof(character), &gDataBase);
+			players[i]->feetCol = feet;
+			players[i]->model.body = body;
+			players[i]->trap.itemModel.body = trap;
+			players[i]->model.texture = gSpriteTexture;
 		}
 	}
 }
