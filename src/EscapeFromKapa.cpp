@@ -406,6 +406,7 @@ void SendData(enum DataType dataType) {
 	if (dataType == CLIENT) {
 		char* structure;
 		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
+		while (strlen(gClient.sentData) != 0);
 		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
 		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
 		int sentLen = strlen(gClient.sentData);
@@ -414,8 +415,10 @@ void SendData(enum DataType dataType) {
 			gClient.sentData[sentLen + i] = structure[i];
 		}
 		gClient.sentData[sentLen + i] = ']';
+		while (strlen(gClient.sentData) != 0);
 		for (i = 0; i < playerCount; ++i) {
 			sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+			while (strlen(gClient.sentData) != 0);
 		}
 	}
 	if (dataType == HOST) {
