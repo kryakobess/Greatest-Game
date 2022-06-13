@@ -135,7 +135,7 @@ void DataAcceptence(char* received)
 		char* structure = (char*)calloc(sizeStructure, sizeof(char));
 		for (int i = 0; i < sizeStructure; i++)
 			structure[i] = received[shiftBeforeStructure + i];
-		for (int id = 0; id < MAX_PLAYER_COUNT; id++)
+		for (int id = 0; id < playerCount; id++)
 		{
 			if (!strcmp(name, playerNames[id]))
 			{
@@ -426,8 +426,10 @@ void SendData(enum DataType dataType) {
 		gClient.sentData[sentLen + i] = ']';
 		while (strlen(gClient.sentData) != 0);
 		for (i = 0; i < playerCount; ++i) {
-			sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
-			while (strlen(gClient.sentData) != 0);
+			if (i != LocalPlayer) {
+				sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+				while (strlen(gClient.sentData) != 0);
+			}
 		}
 	}
 	if (dataType == HOST) {
