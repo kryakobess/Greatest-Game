@@ -140,6 +140,10 @@ void DataAcceptence(char* received)
 					Collider* body = players[id]->model.body;
 					Collider* trap = players[id]->trap.itemModel.body;
 					LoadStructureFromString((void**)&players[id], sizeof(character), structure);
+					if (id != LocalPlayer) {
+						players[id]->model.posRect.x = players[id]->camera.x + players[id]->model.posRect.x - players[LocalPlayer]->camera.x;
+						players[id]->model.posRect.y = players[id]->camera.y + players[id]->model.posRect.y - players[LocalPlayer]->camera.y;
+					}
 					players[id]->feetCol = feet;
 					players[id]->model.body = body;
 					players[id]->trap.itemModel.body = trap;
@@ -471,6 +475,10 @@ void GetData(enum DataType dataType) {
 			Collider* body = players[i]->model.body;
 			Collider* trap = players[i]->trap.itemModel.body;
 			GetStructureFromDateBase(playerNames[i], (void**)&players[i], sizeof(character), &gDataBase);
+			if (i != LocalPlayer) {
+				players[i]->model.posRect.x = players[i]->camera.x + players[i]->model.posRect.x - players[LocalPlayer]->camera.x;
+				players[i]->model.posRect.y = players[i]->camera.y + players[i]->model.posRect.y - players[LocalPlayer]->camera.y;
+			}
 			players[i]->feetCol = feet;
 			players[i]->model.body = body;
 			players[i]->trap.itemModel.body = trap;
