@@ -212,6 +212,10 @@ void DataAcceptence(char* received)
 				name[i] = '\0';
 				shift++;
 				strcpy(playerNames[nameID], name);
+				if (!strcmp(playerNames[nameID], gMyLogin))
+				{
+					LocalPlayer = nameID;
+				}
 			}
 		}
 	}
