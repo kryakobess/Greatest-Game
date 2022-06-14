@@ -5,22 +5,28 @@
 #include "Colliders.h"
 #include "gameMap.h"
 
-#define SPRITE_NUMBER 4
+#define SPRITE_NUMBER 3
 #define VELOCITY 3
 
-const enum CollisionStatus {
-	CollisionModel,
-	Item,
-	bodyDamage,
-	weaponRange
+const enum AssetStatus {
+	A_BOY_1,
+	A_BOY_2,
+	A_GIRL_1,
+	A_GIRL_2,
+	A_MALE_1,
+	A_MALE_2,
+	A_FMALE_1,
+	A_E_ELF,
+	A_E_GHOST,
+	ASSETS_TOTAL
 };
 
 const enum KeyPressSurfaces
 {
 	KEY_PRESS_SURFACE_DOWN,
-	KEY_PRESS_SURFACE_UP,
 	KEY_PRESS_SURFACE_LEFT,
 	KEY_PRESS_SURFACE_RIGHT,
+	KEY_PRESS_SURFACE_UP,
 	KEY_PRESS_SURFACE_TOTAL
 };
 
@@ -29,6 +35,7 @@ typedef struct gameObj {
 	SDL_Rect srcRect;
 	Collider* body;
 	SDL_Texture* texture;
+	AssetStatus asset;
 }gameObj;
 
 typedef struct gameItem {

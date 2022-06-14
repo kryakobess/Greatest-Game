@@ -9,7 +9,7 @@ Mix_Chunk* gSwordAttackChunk = NULL;
 CollidersArray* gCollidersArray = NULL;
 Matrix gMatrix;
 SDL_Rect gSpriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
-SDL_Texture* gSpriteTexture = NULL;
+SDL_Texture* gSpriteTexture[ASSETS_TOTAL] = { 0 };
 SDL_Texture* gBackground = NULL;
 gameObj rockUp; gameObj rockDown; gameObj sampleRock;
 gameObj* objs[] = { &rockUp, &rockDown, &sampleRock };
@@ -144,7 +144,7 @@ void DataAcceptence(char* received)
 					players[id]->model.body = body;
 					players[id]->trap.itemModel.body = trap;
 
-					players[id]->model.texture = gSpriteTexture;
+					players[id]->model.texture = gSpriteTexture[players[id]->model.asset];
 				}
 				break;
 			}
@@ -187,7 +187,7 @@ void DataAcceptence(char* received)
 					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
 					players[i]->trap.itemModel.body->collider = ptr;
 
-					players[i]->model.texture = gSpriteTexture;
+					players[i]->model.texture = gSpriteTexture[players[i]->model.asset];
 				}
 			}
 			char buf[100];
@@ -218,18 +218,58 @@ bool loadMedia()
 	//Loading success flag
 	bool success = true;
 
-	gSpriteTexture = loadTexture("character.png", &gRenderer);
-	if (gSpriteTexture == NULL) {
-		printf("Sprite texture loading fail!");
+	gSpriteTexture[A_E_ELF] = loadTexture("E_elf.png", &gRenderer);
+	if (gSpriteTexture[A_E_ELF] == NULL) {
+		printf("A_E_ELF texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_BOY_1] = loadTexture("boy_1.png", &gRenderer);
+	if (gSpriteTexture[A_BOY_1] == NULL) {
+		printf("A_BOY_1 texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_BOY_2] = loadTexture("boy_2.png", &gRenderer);
+	if (gSpriteTexture[A_BOY_2] == NULL) {
+		printf("A_BOY_2 texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_GIRL_1] = loadTexture("girl_1.png", &gRenderer);
+	if (gSpriteTexture[A_GIRL_1] == NULL) {
+		printf("A_GIRL_1 texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_GIRL_2] = loadTexture("girl_2.png", &gRenderer);
+	if (gSpriteTexture[A_GIRL_2] == NULL) {
+		printf("A_GIRL_2 texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_MALE_1] = loadTexture("male_1.png", &gRenderer);
+	if (gSpriteTexture[A_MALE_1] == NULL) {
+		printf("A_MALE_1 texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_MALE_2] = loadTexture("male_2.png", &gRenderer);
+	if (gSpriteTexture[A_MALE_2] == NULL) {
+		printf("A_MALE_2 texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_FMALE_1] = loadTexture("fmale_1.png", &gRenderer);
+	if (gSpriteTexture[A_FMALE_1] == NULL) {
+		printf("A_FMALE_1 texture loading fail!");
+		success = false;
+	}
+	gSpriteTexture[A_E_GHOST] = loadTexture("e_girl.png", &gRenderer);
+	if (gSpriteTexture[A_E_GHOST] == NULL) {
+		printf("A_E_GHOST texture loading fail!");
 		success = false;
 	}
 	for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
 		for (int j = 0; j < SPRITE_NUMBER; ++j) {
-			gSpriteClips[i][j].w = 210;
-			gSpriteClips[i][j].h = 260;
-			if (j > 0) gSpriteClips[i][j].x = gSpriteClips[i][j].w + gSpriteClips[i][j - 1].x + 30;
+			gSpriteClips[i][j].w = 32;
+			gSpriteClips[i][j].h = 32;
+			if (j > 0) gSpriteClips[i][j].x = gSpriteClips[i][j].w + gSpriteClips[i][j - 1].x;
 			else gSpriteClips[i][j].x = 0;
-			if (i > 0) gSpriteClips[i][j].y = gSpriteClips[i][j].h + gSpriteClips[i - 1][j].y + 25;
+			if (i > 0) gSpriteClips[i][j].y = gSpriteClips[i][j].h + gSpriteClips[i - 1][j].y;
 			else gSpriteClips[i][j].y = 0;
 		}
 	}
@@ -288,15 +328,16 @@ bool InitializeGameData(enum DataType dataType)
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		players[LocalPlayer] = (character*)malloc(sizeof(character));
-		if (!characterInit(players[LocalPlayer], gSpriteTexture, { WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25 },
+		if (!characterInit(players[LocalPlayer], gSpriteTexture[A_GIRL_1], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
+		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
 		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword, gCollidersArray, ONLINE_SWORD_COL_ID)) return false;
 		players[LocalPlayer]->hasSword = true;
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
+		for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
+			for (int j = 0; j < SPRITE_NUMBER; ++j) {
 				players[LocalPlayer]->spriteClips[i][j] = gSpriteClips[i][j];
 			}
 		}
@@ -392,7 +433,7 @@ void GetData(enum DataType dataType) {
 					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
 					players[i]->trap.itemModel.body->collider = ptr;
 
-					players[i]->model.texture = gSpriteTexture;
+					players[i]->model.texture = gSpriteTexture[players[i]->model.asset];
 				}
 			}
 		}
@@ -405,7 +446,7 @@ void GetData(enum DataType dataType) {
 			players[i]->feetCol = feet;
 			players[i]->model.body = body;
 			players[i]->trap.itemModel.body = trap;
-			players[i]->model.texture = gSpriteTexture;
+			players[i]->model.texture = gSpriteTexture[players[i]->model.asset];
 		}
 	}
 }
@@ -456,7 +497,7 @@ void Drawing() {
 			}
 		}
 		else {
-			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][(players[i]->spriteNumber[1] / 8) % 4];
+			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][(players[i]->spriteNumber[1] / 8) % SPRITE_NUMBER];
 			RenderObject(&players[i]->model, gRenderer);
 		}
 	}

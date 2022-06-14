@@ -7,7 +7,6 @@ bool initGameObject(gameObj* obj, SDL_Texture* lTexture, SDL_Rect posCfg, SDL_Re
 	BoxCollider* ptr;
 	if (!AddColliderInArray(colArr, obj->body = CreateCollider(ptr = CreateBoxCollider(cBox), BOX, ID))) return false;
 	obj->body->collider = ptr;
-
 	if (obj->texture == NULL) {
 		return false;
 		printf("Texture loading error!");
