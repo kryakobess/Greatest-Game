@@ -213,6 +213,30 @@ void DataAcceptence(char* received)
 	}
 }
 
+void* SendData(void* arg) {
+	while (true) {
+		char* structure;
+		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
+		while (strlen(gClient.sentData) != 0);
+		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
+		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
+		int sentLen = strlen(gClient.sentData);
+		int i = 0;
+		for (i = 0; i < sizeof(character); i++) {
+			gClient.sentData[sentLen + i] = structure[i];
+		}
+		gClient.sentData[sentLen + i] = ']';
+		while (strlen(gClient.sentData) != 0);
+		for (i = 0; i < playerCount; ++i) {
+			if (i != LocalPlayer) {
+				sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+				while (strlen(gClient.sentData) != 0);
+			}
+		}
+	}
+	return (void*)NULL;
+}
+
 bool loadMedia()
 {
 	//Loading success flag
@@ -330,7 +354,7 @@ bool InitializeGameData(enum DataType dataType)
 		players[LocalPlayer] = (character*)malloc(sizeof(character));
 		if (!characterInit(players[LocalPlayer], gSpriteTexture[A_GIRL_1], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
-		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));;
+		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
@@ -347,7 +371,11 @@ bool InitializeGameData(enum DataType dataType)
 			AddStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
 		}
 		strcpy(playerNames[LocalPlayer], gMyLogin);
-		/*AddStructureInDateBase("")*/
+		if (dataType == CLIENT) {
+			pthread_t sendData;
+			int status = pthread_create(&sendData, NULL, SendData, (void*)NULL);
+			pthread_detach(sendData);
+		}
 	}
 	return true;
 }
@@ -451,32 +479,6 @@ void GetData(enum DataType dataType) {
 	}
 }
 
-void SendData(enum DataType dataType) {
-	if (dataType == CLIENT) {
-		char* structure;
-		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
-		while (strlen(gClient.sentData) != 0);
-		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
-		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
-		int sentLen = strlen(gClient.sentData);
-		int i = 0;
-		for (i = 0; i < sizeof(character); i++) {
-			gClient.sentData[sentLen + i] = structure[i];
-		}
-		gClient.sentData[sentLen + i] = ']';
-		while (strlen(gClient.sentData) != 0);
-		for (i = 0; i < playerCount; ++i) {
-			if (i != LocalPlayer) {
-				sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
-				while (strlen(gClient.sentData) != 0);
-			}
-		}
-	}
-	if (dataType == HOST) {
-		RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
-	}
-}
-
 void Drawing() {
 	SDL_RenderClear(gRenderer);
 	SDL_RenderCopy(gRenderer, gBackground, &players[LocalPlayer]->camera, NULL);
@@ -550,6 +552,6 @@ void GameLoop(enum DataType dataType)
 		GetData(dataType);
 		Drawing();
 		if (!HandleInput(event, 1)) break;
-		SendData(dataType);
+		if (dataType == HOST) RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
 	}
 }
