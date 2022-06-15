@@ -134,7 +134,7 @@ void DataProcessing(char* received, char* transmit) {
 		for (int row = 0; row < gMatrix.countRow; ++row) {
 			for (int col = 0; col < gMatrix.countCol; ++col) {
 				char numString[5] = { 0 };
-				sprintf(numString, "%d", gMatrix.tileArray[row][col]);
+				sprintf(numString, "%d", (int)gMatrix.tileArray[row][col].tileType);
 				strcat(transmit, numString);
 				tShift += strlen(numString);
 				transmit[tShift] = ';';
@@ -301,7 +301,7 @@ void* SendData(void* arg) {
 
 		if (hasMap == false) {
 			gClient.ApplySending = false;
-			sprintf(gClient.sentData, "{SMM}[%s]", gMyLogin);
+			strcpy(gClient.sentData, "{SMM}");
 			gClient.ApplySending = true;
 			while (strlen(gClient.sentData) != 0);
 			hasMap = true;
