@@ -138,8 +138,14 @@ void DataAcceptence(char* received)
 			sprintf(buf, "{%s}/%s/[%d][", task, name, sizeStructure);
 			int shiftBeforeStructure = strlen(buf);
 			char* structure = (char*)calloc(sizeStructure, sizeof(char));
-			for (int i = 0; i < sizeStructure; i++)
+			int i;
+			for (i = 0; i < sizeStructure; i++)
 				structure[i] = received[shiftBeforeStructure + i];
+			if (received[shiftBeforeStructure + i] != ']')
+			{
+				printf("Error reading structure string!\n");
+				return;
+			}
 			for (int id = 0; id < playerCount; id++)
 			{
 				if (!strcmp(name, playerNames[id]))
