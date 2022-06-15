@@ -134,7 +134,7 @@ void DataAcceptence(char* received)
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
 		if (sizeStructure != -1)
 		{
-			char buf[100];
+			char buf[100] = { 0 };
 			sprintf(buf, "{%s}/%s/[%d][", task, name, sizeStructure);
 			int shiftBeforeStructure = strlen(buf);
 			char* structure = (char*)calloc(sizeStructure, sizeof(char));
@@ -163,6 +163,8 @@ void DataAcceptence(char* received)
 					break;
 				}
 			}
+			free(structure);
+			structure = NULL;
 		}
 		else
 		{
