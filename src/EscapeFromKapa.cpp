@@ -1,4 +1,5 @@
 #include "EscapeFromKapa.h"
+pthread_mutex_t sendLock = PTHREAD_MUTEX_INITIALIZER;
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
@@ -41,13 +42,16 @@ void DataProcessing(char* received, char* transmit) {
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]]", task, name);
 		int id = getIDStructure(name, &gDataBase);
-		sprintf(transmit, "{%s}/%s/[%d][", task, name, gDataBase.sizesStructure[id]);
-		int tLen = strlen(transmit);
-		int i = 0;
-		for (i = 0; i < gDataBase.sizesStructure[id]; ++i) {
-			transmit[tLen + i] = gDataBase.stringStructure[id][i];
+		if (id == -1) sprintf(transmit, "{%s}/%s/[%d]", task, name, -1);
+		else {
+			sprintf(transmit, "{%s}/%s/[%d][", task, name, gDataBase.sizesStructure[id]);
+			int tLen = strlen(transmit);
+			int i = 0;
+			for (i = 0; i < gDataBase.sizesStructure[id]; ++i) {
+				transmit[tLen + i] = gDataBase.stringStructure[id][i];
+			}
+			transmit[tLen + i] = ']';
 		}
-		transmit[tLen + i] = ']';
 	}
 	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
 	// If login do not exist in Data Base, we create new client's  row
@@ -59,26 +63,28 @@ void DataProcessing(char* received, char* transmit) {
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]][%d][",task, name, &sizeStr);
 		int ID = getIDStructure(name, &gDataBase);
 		if (ID == -1) {
-			if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
-				strcpy(transmit, "{CTS}[ConnectionFail]");
-			}
-			else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
-				strcpy(transmit, "{CTS}[ConnectionFail]");
-			}
-			else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(sizeStr + 1, sizeof(char)))) {
-				strcpy(transmit, "{CTS}[ConnectionFail]");
-			}
-			else {
-				char sPointerBuf[256] = { 0 };
-				sprintf(sPointerBuf, "{%s}[%s][%d][", task, name, sizeStr);
-				int sPointer = strlen(sPointerBuf);
-				sprintf(gDataBase.nameStructure[gDataBase.countStructure], "%s", name);
-				for (int i = 0; i < sizeStr; ++i) {
-					gDataBase.stringStructure[gDataBase.countStructure][i] = received[i + sPointer];
+			if (gServer.ClientCount == gDataBase.countStructure) {
+				if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
+					strcpy(transmit, "{SMP}[ConnectionFail]");
 				}
-				gDataBase.sizesStructure[gDataBase.countStructure] = sizeStr;
-				gDataBase.countStructure++;
-				strcpy(transmit, "{CTS}[Connected]");
+				else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
+					strcpy(transmit, "{SMP}[ConnectionFail]");
+				}
+				else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(sizeStr + 1, sizeof(char)))) {
+					strcpy(transmit, "{SMP}[ConnectionFail]");
+				}
+				else {
+					char sPointerBuf[256] = { 0 };
+					sprintf(sPointerBuf, "{%s}[%s][%d][", task, name, sizeStr);
+					int sPointer = strlen(sPointerBuf);
+					strcpy(gDataBase.nameStructure[gDataBase.countStructure], name);
+					for (int i = 0; i < sizeStr; ++i) {
+						gDataBase.stringStructure[gDataBase.countStructure][i] = received[i + sPointer];
+					}
+					gDataBase.sizesStructure[gDataBase.countStructure] = sizeStr;
+					gDataBase.countStructure++;
+					strcpy(transmit, "{SMP}[Connected]");
+				}
 			}
 		}
 		else {
@@ -107,11 +113,12 @@ void DataProcessing(char* received, char* transmit) {
 				trnLen = strlen(transmit);
 				transmit[trnLen] = ']';
 				transmit[trnLen + 1] = '[';
+				transmit[trnLen + 2] = '\0';
 			}
 			transmit[trnLen + 1] = '\0';
 		}
 		else {
-			sprintf(transmit, "{SPC}/%d/", -1);
+			sprintf(transmit, "{SPC}/%d/\0", -1);
 		}
 	}
 }
@@ -124,33 +131,35 @@ void DataAcceptence(char* received)
 		int sizeStructure = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
-		char buf[100];
-		sprintf(buf, "{%s}/%s/[%d][", task, name, sizeStructure);
-		int shiftBeforeStructure = strlen(buf);
-		char* structure = (char*)calloc(sizeStructure, sizeof(char));
-		for (int i = 0; i < sizeStructure; i++)
-			structure[i] = received[shiftBeforeStructure + i];
-		for (int id = 0; id < playerCount; id++)
-		{
-			if (!strcmp(name, playerNames[id]))
+		if (sizeStructure > 0) {
+			char buf[100];
+			sprintf(buf, "{%s}/%s/[%d][", task, name, sizeStructure);
+			int shiftBeforeStructure = strlen(buf);
+			char* structure = (char*)calloc(sizeStructure, sizeof(char));
+			for (int i = 0; i < sizeStructure; i++)
+				structure[i] = received[shiftBeforeStructure + i];
+			for (int id = 0; id < playerCount; id++)
 			{
-				if (id != LocalPlayer)
+				if (!strcmp(name, playerNames[id]))
 				{
-					Collider* feet = players[id]->feetCol;
-					Collider* body = players[id]->model.body;
-					Collider* trap = players[id]->trap.itemModel.body;
-					LoadStructureFromString((void**)&players[id], sizeof(character), structure);
-					if (id != LocalPlayer) {
-						players[id]->model.posRect.x = players[id]->camera.x + players[id]->model.posRect.x - players[LocalPlayer]->camera.x;
-						players[id]->model.posRect.y = players[id]->camera.y + players[id]->model.posRect.y - players[LocalPlayer]->camera.y;
-					}
-					players[id]->feetCol = feet;
-					players[id]->model.body = body;
-					players[id]->trap.itemModel.body = trap;
+					if (id != LocalPlayer)
+					{
+						Collider* feet = players[id]->feetCol;
+						Collider* body = players[id]->model.body;
+						Collider* trap = players[id]->trap.itemModel.body;
+						LoadStructureFromString((void**)&players[id], sizeof(character), structure);
+						if (id != LocalPlayer) {
+							players[id]->model.posRect.x = players[id]->camera.x + players[id]->model.posRect.x - players[LocalPlayer]->camera.x;
+							players[id]->model.posRect.y = players[id]->camera.y + players[id]->model.posRect.y - players[LocalPlayer]->camera.y;
+						}
+						players[id]->feetCol = feet;
+						players[id]->model.body = body;
+						players[id]->trap.itemModel.body = trap;
 
-					players[id]->model.texture = gSpriteTexture[players[id]->model.asset];
+						players[id]->model.texture = gSpriteTexture[players[id]->model.asset];
+						break;
+					}
 				}
-				break;
 			}
 		}
 	}
@@ -211,11 +220,16 @@ void DataAcceptence(char* received)
 				shift += i;
 				name[i] = '\0';
 				shift++;
-				strcpy(playerNames[nameID], name);
-				if (!strcmp(playerNames[nameID], gMyLogin))
-				{
-					LocalPlayer = nameID;
+				bool exist = false;
+				int j = 0;
+				for (j = 0; j < MAX_PLAYER_COUNT; ++j) {
+					if (!strcmp(playerNames[j], name)) exist = true;
+					else if (strlen(playerNames[j]) == 0) {
+						exist = false; 
+						break;
+					}
 				}
+				if (exist == false) strcpy(playerNames[j], name);
 			}
 		}
 	}
@@ -224,8 +238,15 @@ void DataAcceptence(char* received)
 void* SendData(void* arg) {
 	while (true) {
 		char* structure;
+		gClient.ApplySending = false;
+		pthread_mutex_lock(&sendLock);
 		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
+		gClient.ApplySending = true;
+		pthread_mutex_unlock(&sendLock);
 		while (strlen(gClient.sentData) != 0);
+
+		pthread_mutex_lock(&sendLock);
+		gClient.ApplySending = false;
 		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
 		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
 		int sentLen = strlen(gClient.sentData);
@@ -234,10 +255,17 @@ void* SendData(void* arg) {
 			gClient.sentData[sentLen + i] = structure[i];
 		}
 		gClient.sentData[sentLen + i] = ']';
+		gClient.ApplySending = true;
+		pthread_mutex_unlock(&sendLock);
 		while (strlen(gClient.sentData) != 0);
+
 		for (i = 0; i < playerCount; ++i) {
 			if (i != LocalPlayer) {
+				pthread_mutex_lock(&sendLock);
+				gClient.ApplySending = false;
 				sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+				gClient.ApplySending = true;
+				pthread_mutex_unlock(&sendLock);
 				while (strlen(gClient.sentData) != 0);
 			}
 		}
@@ -561,6 +589,7 @@ void GameLoop(enum DataType dataType)
 			printf("%s %d %d\n", playerNames[i], players[i]->camera.x, players[i]->camera.y);
 		}
 		printf("\n");
+		if (dataType == HOST) printf("%d %d\n", gServer.ClientCount, gDataBase.countStructure);
 		GetData(dataType);
 		Drawing();
 		if (!HandleInput(event, 1)) break;
