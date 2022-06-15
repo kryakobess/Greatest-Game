@@ -130,7 +130,7 @@ void DataProcessing(char* received, char* transmit) {
 	// Receive format: "{SMM}"
 	// Transmit format: "{SMM}[row;col] Cycle_Numbers"
 	if (!strcmp("SMM", task)) {
-		sprintf(transmit, "[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+		sprintf(transmit, "{SMM}[%d;%d]", gMatrix.countRow, gMatrix.countCol);
 		int tShift = strlen(transmit);
 		for (int row = 0; row < gMatrix.countRow; ++row) {
 			for (int col = 0; col < gMatrix.countCol; ++col) {
