@@ -557,10 +557,6 @@ void GameLoop(enum DataType dataType)
 {
 	Mix_PlayMusic(gMusic, -1);
 	while (true) {
-		for (int i = 0; i < playerCount; ++i) {
-			printf("%s %d %d\n", playerNames[i], players[i]->camera.x, players[i]->camera.y);
-		}
-		printf("\n");
 		GetData(dataType);
 		Drawing();
 		if (!HandleInput(event, 1)) break;
