@@ -178,9 +178,8 @@ void DataAcceptence(char* received)
 		sscanf(received, "{%[A-Z ]}/%d/", task, &clientCount);
 		if (clientCount != -1)
 		{
-			playerCount = clientCount;
-			printf("I have %d players\n", playerCount);
-			for (int i = 0; i < playerCount; i++)
+			printf("I have %d players\n", clientCount);
+			for (int i = 0; i < clientCount; i++)
 			{
 				if (players[i] == NULL)
 				{
@@ -215,10 +214,19 @@ void DataAcceptence(char* received)
 				shift += i;
 				name[i] = '\0';
 				shift++;
-				strcpy(playerNames[nameID], name);
-				if (!strcmp(playerNames[nameID], gMyLogin))
+				bool existPlayer = false;
+				for (int j = 0; j < playerCount; j++)
 				{
-					LocalPlayer = nameID;
+					if (!strcmp(playerNames[j], name))
+					{
+						existPlayer = true;
+						break;
+					}
+				}
+				if (!existPlayer)
+				{
+					strcpy(playerNames[playerCount], name);
+					playerCount++;
 				}
 			}
 		}
