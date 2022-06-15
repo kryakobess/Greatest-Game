@@ -42,11 +42,11 @@ void DataProcessing(char* received, char* transmit) {
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]]", task, name);
 		int id = getIDStructure(name, &gDataBase);
-		if (id == LocalPlayer) while (gRewrited == false);
 		if (id != -1) {
 			sprintf(transmit, "{%s}/%s/[%d][", task, name, gDataBase.sizesStructure[id]);
 			int tLen = strlen(transmit);
 			int i = 0;
+			if (id == LocalPlayer) while (gRewrited == false);
 			for (i = 0; i < gDataBase.sizesStructure[id]; ++i) {
 				transmit[tLen + i] = gDataBase.stringStructure[id][i];
 			}
