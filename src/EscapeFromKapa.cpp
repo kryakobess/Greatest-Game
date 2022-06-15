@@ -127,34 +127,41 @@ void DataAcceptence(char* received)
 		int sizeStructure = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
-		char buf[100];
-		sprintf(buf, "{%s}/%s/[%d][", task, name, sizeStructure);
-		int shiftBeforeStructure = strlen(buf);
-		char* structure = (char*)calloc(sizeStructure, sizeof(char));
-		for (int i = 0; i < sizeStructure; i++)
-			structure[i] = received[shiftBeforeStructure + i];
-		for (int id = 0; id < playerCount; id++)
+		if (sizeStructure != -1)
 		{
-			if (!strcmp(name, playerNames[id]))
+			char buf[100];
+			sprintf(buf, "{%s}/%s/[%d][", task, name, sizeStructure);
+			int shiftBeforeStructure = strlen(buf);
+			char* structure = (char*)calloc(sizeStructure, sizeof(char));
+			for (int i = 0; i < sizeStructure; i++)
+				structure[i] = received[shiftBeforeStructure + i];
+			for (int id = 0; id < playerCount; id++)
 			{
-				if (id != LocalPlayer)
+				if (!strcmp(name, playerNames[id]))
 				{
-					Collider* feet = players[id]->feetCol;
-					Collider* body = players[id]->model.body;
-					Collider* trap = players[id]->trap.itemModel.body;
-					LoadStructureFromString((void**)&players[id], sizeof(character), structure);
-					if (id != LocalPlayer) {
-						players[id]->model.posRect.x = players[id]->camera.x + players[id]->model.posRect.x - players[LocalPlayer]->camera.x;
-						players[id]->model.posRect.y = players[id]->camera.y + players[id]->model.posRect.y - players[LocalPlayer]->camera.y;
-					}
-					players[id]->feetCol = feet;
-					players[id]->model.body = body;
-					players[id]->trap.itemModel.body = trap;
+					if (id != LocalPlayer)
+					{
+						Collider* feet = players[id]->feetCol;
+						Collider* body = players[id]->model.body;
+						Collider* trap = players[id]->trap.itemModel.body;
+						LoadStructureFromString((void**)&players[id], sizeof(character), structure);
+						if (id != LocalPlayer) {
+							players[id]->model.posRect.x = players[id]->camera.x + players[id]->model.posRect.x - players[LocalPlayer]->camera.x;
+							players[id]->model.posRect.y = players[id]->camera.y + players[id]->model.posRect.y - players[LocalPlayer]->camera.y;
+						}
+						players[id]->feetCol = feet;
+						players[id]->model.body = body;
+						players[id]->trap.itemModel.body = trap;
 
-					players[id]->model.texture = gSpriteTexture[players[id]->model.asset];
+						players[id]->model.texture = gSpriteTexture[players[id]->model.asset];
+					}
+					break;
 				}
-				break;
 			}
+		}
+		else
+		{
+			printf("You haven't connected\n");
 		}
 	}
 	if (!strcmp("SMP", task)) {
