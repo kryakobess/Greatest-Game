@@ -117,7 +117,7 @@ void* SendToServer(void* arg) {
 	}
 	while(true)
 	{
-		if (strlen(client->sentData) != 0)
+		if (client->ApplySending && strlen(client->sentData) != 0)
 		{
 			int ret = send(client->socket, client->sentData, MAX_DATA_SIZE, 0);
 			client->sentData[0] = '\0';
@@ -149,6 +149,7 @@ int ConnectToServer(myClient* client, const char* ip, const int port) {
 	client->serverAddr.sin_family = AF_INET;
 	client->serverAddr.sin_port = htons(port);
 	client->serverAddr.sin_addr.S_un.S_addr = inet_addr(ip);
+	client->ApplySending = false;
 	pthread_t clientThread;
 	pthread_create(&clientThread, NULL, SendToServer, (void*)client);
 	pthread_detach(clientThread);
