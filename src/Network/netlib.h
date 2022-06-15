@@ -53,6 +53,7 @@ typedef struct myClient {
 	SOCKADDR_IN serverAddr;
 	pthread_t thread;
 	char sentData[1024];
+	bool ApplySending;
 	char recievedData[1024];
 	void (*DataAcceptance)(char*);
 }myClient;

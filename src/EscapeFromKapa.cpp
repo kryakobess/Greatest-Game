@@ -227,8 +227,12 @@ void DataAcceptence(char* received)
 void* SendData(void* arg) {
 	while (true) {
 		char* structure;
+		gClient.ApplySending = false;
 		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
+		gClient.ApplySending = true;
 		while (strlen(gClient.sentData) != 0);
+
+		gClient.ApplySending = false;
 		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
 		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
 		int sentLen = strlen(gClient.sentData);
@@ -237,10 +241,14 @@ void* SendData(void* arg) {
 			gClient.sentData[sentLen + i] = structure[i];
 		}
 		gClient.sentData[sentLen + i] = ']';
+		gClient.ApplySending = true;
 		while (strlen(gClient.sentData) != 0);
+
 		for (i = 0; i < playerCount; ++i) {
 			if (i != LocalPlayer) {
+				gClient.ApplySending = false;
 				sprintf(gClient.sentData, "{SPPN}[%s]\0", playerNames[i]);
+				gClient.ApplySending = true;
 				while (strlen(gClient.sentData) != 0);
 			}
 		}
