@@ -25,6 +25,7 @@ myServer gServer; myClient gClient;
 int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 int LocalPlayer = 0;
+bool gRewrited = false;
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
@@ -41,6 +42,7 @@ void DataProcessing(char* received, char* transmit) {
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]]", task, name);
 		int id = getIDStructure(name, &gDataBase);
+		if (id == LocalPlayer) while (gRewrited == false);
 		if (id != -1) {
 			sprintf(transmit, "{%s}/%s/[%d][", task, name, gDataBase.sizesStructure[id]);
 			int tLen = strlen(transmit);
@@ -132,6 +134,7 @@ void DataAcceptence(char* received)
 	if (!strcmp("SPPN", task)) {
 		int sizeStructure = 0;
 		char name[128] = { 0 };
+		printf("I recieved structure string {%s}\n", received);
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
 		if (sizeStructure != -1)
 		{
@@ -147,7 +150,6 @@ void DataAcceptence(char* received)
 				printf("Error reading structure string!\n");
 				return;
 			}
-			printf("I recieved structure string {%s}\n", structure);
 			for (int id = 0; id < playerCount; id++)
 			{
 				if (!strcmp(name, playerNames[id]))
@@ -610,6 +612,8 @@ void GameLoop(enum DataType dataType)
 		GetData(dataType);
 		Drawing();
 		if (!HandleInput(event, 1)) break;
+		gRewrited = false;
 		if (dataType == HOST) RewriteStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
+		gRewrited = true;
 	}
 }
