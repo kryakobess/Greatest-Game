@@ -26,6 +26,7 @@ int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 int LocalPlayer = 0;
 bool gRewrited = false;
+char gLabirintString[MAX_LAB_STR_LEN] = { 0 };
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
@@ -278,6 +279,15 @@ void DataAcceptence(char* received)
 					playerCount++;
 				}
 			}
+		}
+	}
+	if (!strcmp(task, "SMM")) {
+		int tLen = strlen(task) + 2;
+		for (int i = 0; i < MAX_LAB_STR_LEN; ++i) {
+			if (received[tLen + i] != '\0') {
+				gLabirintString[i] = received[tLen + i];
+			}
+			else break;
 		}
 	}
 }
