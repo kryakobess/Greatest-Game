@@ -155,9 +155,9 @@ void DataAcceptence(char* received)
 						character* old_player = players[id];
 						character* temp_player = (character*)calloc(1, sizeof(character));
 
-						Collider* feet = temp_player->feetCol;
-						Collider* body = temp_player->model.body;
-						Collider* trap = temp_player->trap.itemModel.body;
+						Collider* feet = old_player->feetCol;
+						Collider* body = old_player->model.body;
+						Collider* trap = old_player->trap.itemModel.body;
 						LoadStructureFromString((void**)&temp_player, sizeof(character), structure);
 						if (id != LocalPlayer) {
 							temp_player->model.posRect.x = temp_player->camera.x + temp_player->model.posRect.x - players[LocalPlayer]->camera.x;
