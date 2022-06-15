@@ -168,7 +168,7 @@ void DataAcceptence(char* received)
 		}
 		if (!strcmp(status, "Data_Sent"))
 		{
-			printf("Data_Sent\n");
+			//printf("Data_Sent\n");
 		}
 	}
 	/*if (!strcmp("SPC", task)) {
