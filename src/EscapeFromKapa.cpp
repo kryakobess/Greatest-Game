@@ -41,13 +41,18 @@ void DataProcessing(char* received, char* transmit) {
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]]", task, name);
 		int id = getIDStructure(name, &gDataBase);
-		sprintf(transmit, "{%s}/%s/[%d][", task, name, gDataBase.sizesStructure[id]);
-		int tLen = strlen(transmit);
-		int i = 0;
-		for (i = 0; i < gDataBase.sizesStructure[id]; ++i) {
-			transmit[tLen + i] = gDataBase.stringStructure[id][i];
+		if (id != -1) {
+			sprintf(transmit, "{%s}/%s/[%d][", task, name, gDataBase.sizesStructure[id]);
+			int tLen = strlen(transmit);
+			int i = 0;
+			for (i = 0; i < gDataBase.sizesStructure[id]; ++i) {
+				transmit[tLen + i] = gDataBase.stringStructure[id][i];
+			}
+			transmit[tLen + i] = ']';
 		}
-		transmit[tLen + i] = ']';
+		else {
+			sprintf(transmit, "{SPPN}/%s/[%d]", name, -1);
+		}
 	}
 	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
 	// If login do not exist in Data Base, we create new client's  row
