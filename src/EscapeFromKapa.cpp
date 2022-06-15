@@ -109,6 +109,7 @@ void DataProcessing(char* received, char* transmit) {
 				trnLen = strlen(transmit);
 				transmit[trnLen] = ']';
 				transmit[trnLen + 1] = '[';
+				transmit[trnLen + 2] = '\0';
 			}
 			transmit[trnLen + 1] = '\0';
 		}
