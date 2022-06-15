@@ -49,6 +49,7 @@ void DataProcessing(char* received, char* transmit) {
 				transmit[tLen + i] = gDataBase.stringStructure[id][i];
 			}
 			transmit[tLen + i] = ']';
+			printf("I send structure string {%s}\n", transmit);
 		}
 		else {
 			sprintf(transmit, "{SPPN}/%s/[%d]", name, -1);
@@ -146,6 +147,7 @@ void DataAcceptence(char* received)
 				printf("Error reading structure string!\n");
 				return;
 			}
+			printf("I recieved structure string {%s}\n", structure);
 			for (int id = 0; id < playerCount; id++)
 			{
 				if (!strcmp(name, playerNames[id]))
