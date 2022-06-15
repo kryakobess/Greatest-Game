@@ -30,7 +30,8 @@ bool gRewrited = false;
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
 	SMP — Send My Position 
-	SPC — Send Players' Count*/
+	SPC — Send Players' Count
+	SMM -- Send Me Map*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -123,6 +124,23 @@ void DataProcessing(char* received, char* transmit) {
 		}
 		else {
 			sprintf(transmit, "{SPC}/%d/", -1);
+		}
+	}
+	// Receive format: "{SMM}"
+	// Transmit format: "{SMM}[row;col] Cycle_Numbers"
+	if (!strcmp("SMM", task)) {
+		sprintf(transmit, "[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+		int tShift = strlen(transmit);
+		for (int row = 0; row < gMatrix.countRow; ++row) {
+			for (int col = 0; col < gMatrix.countCol; ++col) {
+				char numString[5] = { 0 };
+				sprintf(numString, "%d", gMatrix.tileArray[row][col]);
+				strcat(transmit, numString);
+				tShift += strlen(numString);
+				transmit[tShift] = ';';
+				tShift += 1;
+				transmit[tShift] = '\0';
+			}
 		}
 	}
 }
@@ -280,6 +298,14 @@ void* SendData(void* arg) {
 		gClient.sentData[sentLen + i] = ']';
 		gClient.ApplySending = true;
 		while (strlen(gClient.sentData) != 0);
+
+		if (hasMap == false) {
+			gClient.ApplySending = false;
+			sprintf(gClient.sentData, "{SMM}[%s]", gMyLogin);
+			gClient.ApplySending = true;
+			while (strlen(gClient.sentData) != 0);
+			hasMap = true;
+		}
 
 		gClient.ApplySending = false;
 		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
