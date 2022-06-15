@@ -36,7 +36,7 @@ void DataProcessing(char* received, char* transmit) {
 	//Then server transmit information about chosen player(by name) to client who requested it
 	// Receive format: "{TASK}[Name]"
 	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
-	if (!strcmp("SPPN", task)){
+	/*if (!strcmp("SPPN", task)){
 		int trnLen = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]]", task, name);
@@ -48,7 +48,7 @@ void DataProcessing(char* received, char* transmit) {
 			transmit[tLen + i] = gDataBase.stringStructure[id][i];
 		}
 		transmit[tLen + i] = ']';
-	}
+	}*/
 	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
 	// If login do not exist in Data Base, we create new client's  row
 	//Receive format: "{TASK}[LoginName][Size of Structure][structure]"
@@ -60,13 +60,13 @@ void DataProcessing(char* received, char* transmit) {
 		int ID = getIDStructure(name, &gDataBase);
 		if (ID == -1) {
 			if (gDataBase.countStructure == MAX_STRUCTURE_COUNT) {
-				strcpy(transmit, "{CTS}[ConnectionFail]");
+				strcpy(transmit, "{SMP}[ConnectionFail]");
 			}
 			else if (!(gDataBase.nameStructure[gDataBase.countStructure] = (char*)calloc(strlen(name) + 1, sizeof(char)))) {
-				strcpy(transmit, "{CTS}[ConnectionFail]");
+				strcpy(transmit, "{SMP}[ConnectionFail]");
 			}
 			else if (!(gDataBase.stringStructure[gDataBase.countStructure] = (char*)calloc(sizeStr + 1, sizeof(char)))) {
-				strcpy(transmit, "{CTS}[ConnectionFail]");
+				strcpy(transmit, "{SMP}[ConnectionFail]");
 			}
 			else {
 				char sPointerBuf[256] = { 0 };
@@ -78,7 +78,8 @@ void DataProcessing(char* received, char* transmit) {
 				}
 				gDataBase.sizesStructure[gDataBase.countStructure] = sizeStr;
 				gDataBase.countStructure++;
-				strcpy(transmit, "{CTS}[Connected]");
+				strcpy(transmit, "{SMP}[Connected]");
+				printf("I connect %s to server\n", name);
 			}
 		}
 		else {
@@ -96,7 +97,7 @@ void DataProcessing(char* received, char* transmit) {
 	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
 	// Receive format: "{TASK}/ClientPlayersCount/"
 	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
-	if (!strcmp("SPC", task)) {
+	/*if (!strcmp("SPC", task)) {
 		int curClientCount = 0;
 		sscanf(received, "{%[A-Z ]}/%d/", task, &curClientCount);
 		if (curClientCount != gDataBase.countStructure) {
@@ -113,14 +114,14 @@ void DataProcessing(char* received, char* transmit) {
 		else {
 			sprintf(transmit, "{SPC}/%d/", -1);
 		}
-	}
+	}*/
 }
 
 void DataAcceptence(char* received)
 {
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
-	if (!strcmp("SPPN", task)) {
+	/*if (!strcmp("SPPN", task)) {
 		int sizeStructure = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
@@ -153,24 +154,24 @@ void DataAcceptence(char* received)
 				break;
 			}
 		}
-	}
+	}*/
 	if (!strcmp("SMP", task)) {
 		char status[10] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z_ ]", task, status);
 		if (!strcmp(status, "ConnectionFail"))
 		{
-			//?
+			printf("ConnectionFail\n");
 		}
 		if (!strcmp(status, "Connected"))
 		{
-			//OK
+			printf("I connected to server\n");
 		}
 		if (!strcmp(status, "Data_Sent"))
 		{
-			//OK
+			printf("Data_Sent\n");
 		}
 	}
-	if (!strcmp("SPC", task)) {
+	/*if (!strcmp("SPC", task)) {
 		int clientCount;
 		sscanf(received, "{%[A-Z ]}/%d/", task, &clientCount);
 		if (clientCount != -1)
@@ -218,7 +219,7 @@ void DataAcceptence(char* received)
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void* SendData(void* arg) {
