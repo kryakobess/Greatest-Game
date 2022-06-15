@@ -469,25 +469,31 @@ bool InitializeGameData(enum DataType dataType)
 		}
 		strcpy(playerNames[LocalPlayer], gMyLogin);
 		if (dataType == CLIENT) {
+			gLabirintString[0] = '\0';
 			pthread_t sendData;
 			int status = pthread_create(&sendData, NULL, SendData, (void*)NULL);
 			pthread_detach(sendData);
 
-			size_t** servMatr = (size_t**)calloc(3, sizeof(size_t*));
-			for (int i = 0; i < 3; i++)
-				servMatr[i] = (size_t*)calloc(3, sizeof(size_t));
-			gMatrix.countCol = 3;
-			gMatrix.countRow = 3;
-			servMatr[0][0] = CLEAR_STONE;
-			servMatr[0][1] = GROUND;
-			servMatr[0][2] = GROUND;
-			servMatr[1][0] = GROUND;
-			servMatr[1][1] = GROUND;
-			servMatr[1][2] = GROUND;
-			servMatr[2][0] = CLEAR_STONE;
-			servMatr[2][1] = CLEAR_STONE;
-			servMatr[2][2] = CLEAR_STONE;
-
+			while(strlen(gLabirintString)==0){}
+			sscanf(gLabirintString, "[%d;%d]", &gMatrix.countRow, &gMatrix.countCol);
+			size_t** servMatr = (size_t**)calloc(gMatrix.countRow, sizeof(size_t*));
+			for (int i = 0; i < gMatrix.countRow; i++)
+				servMatr[i] = (size_t*)calloc(gMatrix.countCol, sizeof(size_t));
+			char buf[20] = { 0 };
+			sprintf(buf, "[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+			int shift = strlen(buf);
+			for (int i = 0; i < gMatrix.countRow; i++)
+			{
+				for (int j = 0; j < gMatrix.countCol; j++)
+				{
+					sscanf(gLabirintString + shift, "%d;", &servMatr[j][i]);
+					int shift_2;
+					char buffer[5] = { 0 };
+					sprintf(buffer, "%d;", servMatr[j][i]);
+					shift_2 = strlen(buffer);
+					shift += shift_2;
+				}
+			}
 
 			if (!InitLabirintMatrix(&gMatrix)) return false;
 			if (!AddLabirintColliders(&gMatrix, gCollidersArray, servMatr)) return false;
