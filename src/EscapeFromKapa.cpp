@@ -412,9 +412,9 @@ bool InitializeGameData(enum DataType dataType)
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		players[LocalPlayer] = (character*)malloc(sizeof(character));
-		if (!characterInit(players[LocalPlayer], gSpriteTexture[A_GIRL_1], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
-			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
 		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));
+		if (!characterInit(players[LocalPlayer], gSpriteTexture[players[LocalPlayer]->model.asset], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
+			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
@@ -550,7 +550,7 @@ void Drawing() {
 	for (int i = 0; i < playerCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
 	RenderObject(&rockDown, gRenderer);
 	RenderObject(&sampleRock, gRenderer);
-	for (int i = playerCount - 1; i >= LocalPlayer; --i) {
+	for (int i = playerCount - 1; i >= 0; --i) {
 		if (players[i]->hasSword && players[i]->sword.isActive) {
 			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][1];
 			if (players[i]->spriteNumber[0] == KEY_PRESS_SURFACE_UP) {
