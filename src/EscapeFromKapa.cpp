@@ -225,6 +225,7 @@ void DataAcceptence(char* received)
 				}
 				if (!existPlayer)
 				{
+					printf("I added %s in playerNames\n", name);
 					strcpy(playerNames[playerCount], name);
 					playerCount++;
 				}
