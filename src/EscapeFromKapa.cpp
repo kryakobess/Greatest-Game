@@ -152,19 +152,25 @@ void DataAcceptence(char* received)
 				{
 					if (id != LocalPlayer)
 					{
-						Collider* feet = players[id]->feetCol;
-						Collider* body = players[id]->model.body;
-						Collider* trap = players[id]->trap.itemModel.body;
-						LoadStructureFromString((void**)&players[id], sizeof(character), structure);
-						if (id != LocalPlayer) {
-							players[id]->model.posRect.x = players[id]->camera.x + players[id]->model.posRect.x - players[LocalPlayer]->camera.x;
-							players[id]->model.posRect.y = players[id]->camera.y + players[id]->model.posRect.y - players[LocalPlayer]->camera.y;
-						}
-						players[id]->feetCol = feet;
-						players[id]->model.body = body;
-						players[id]->trap.itemModel.body = trap;
+						character* old_player = players[id];
+						character* temp_player = (character*)calloc(1, sizeof(character));
 
-						players[id]->model.texture = gSpriteTexture[players[id]->model.asset];
+						Collider* feet = temp_player->feetCol;
+						Collider* body = temp_player->model.body;
+						Collider* trap = temp_player->trap.itemModel.body;
+						LoadStructureFromString((void**)&temp_player, sizeof(character), structure);
+						if (id != LocalPlayer) {
+							temp_player->model.posRect.x = temp_player->camera.x + temp_player->model.posRect.x - players[LocalPlayer]->camera.x;
+							temp_player->model.posRect.y = temp_player->camera.y + temp_player->model.posRect.y - players[LocalPlayer]->camera.y;
+						}
+						temp_player->feetCol = feet;
+						temp_player->model.body = body;
+						temp_player->trap.itemModel.body = trap;
+
+						temp_player->model.texture = gSpriteTexture[temp_player->model.asset];
+
+						players[id] = temp_player;
+						free(old_player);
 					}
 					break;
 				}
