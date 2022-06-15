@@ -177,8 +177,8 @@ void DataAcceptence(char* received)
 		sscanf(received, "{%[A-Z ]}/%d/", task, &clientCount);
 		if (clientCount != -1)
 		{
-			printf("I have %d players\n", playerCount);
 			playerCount = clientCount;
+			printf("I have %d players\n", playerCount);
 			for (int i = 0; i < playerCount; i++)
 			{
 				if (players[i] == NULL)
@@ -227,10 +227,6 @@ void DataAcceptence(char* received)
 void* SendData(void* arg) {
 	while (true) {
 		char* structure;
-		gClient.ApplySending = false;
-		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
-		gClient.ApplySending = true;
-		while (strlen(gClient.sentData) != 0);
 
 		gClient.ApplySending = false;
 		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
@@ -241,6 +237,11 @@ void* SendData(void* arg) {
 			gClient.sentData[sentLen + i] = structure[i];
 		}
 		gClient.sentData[sentLen + i] = ']';
+		gClient.ApplySending = true;
+		while (strlen(gClient.sentData) != 0);
+
+		gClient.ApplySending = false;
+		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
 		gClient.ApplySending = true;
 		while (strlen(gClient.sentData) != 0);
 
