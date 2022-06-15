@@ -36,7 +36,7 @@ void DataProcessing(char* received, char* transmit) {
 	//Then server transmit information about chosen player(by name) to client who requested it
 	// Receive format: "{TASK}[Name]"
 	//Transmit format: "{TASK}/Name/[Size of Structure][Structure]" Structure is not in string format! It is char array.
-	/*if (!strcmp("SPPN", task)){
+	if (!strcmp("SPPN", task)){
 		int trnLen = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z0-9_ ]]", task, name);
@@ -48,7 +48,7 @@ void DataProcessing(char* received, char* transmit) {
 			transmit[tLen + i] = gDataBase.stringStructure[id][i];
 		}
 		transmit[tLen + i] = ']';
-	}*/
+	}
 	//In receive variable there is a string of the current client's structure. We parse the string var and then save this structure in server's Data Base. 
 	// If login do not exist in Data Base, we create new client's  row
 	//Receive format: "{TASK}[LoginName][Size of Structure][structure]"
@@ -123,7 +123,7 @@ void DataAcceptence(char* received)
 {
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
-	/*if (!strcmp("SPPN", task)) {
+	if (!strcmp("SPPN", task)) {
 		int sizeStructure = 0;
 		char name[128] = { 0 };
 		sscanf(received, "{%[A-Z ]}/%[a-zA-Z0-9 ]/[%d]", task, name, &sizeStructure);
@@ -156,7 +156,7 @@ void DataAcceptence(char* received)
 				break;
 			}
 		}
-	}*/
+	}
 	if (!strcmp("SMP", task)) {
 		char status[10] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[a-zA-Z_ ]", task, status);
