@@ -195,6 +195,11 @@ bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 	if(!InitMatrix(matr, matrix)) return false;
 	ColoringLabirint(matr, matrix);
 	if (!InitLabirintMatrix(matrix)) return false;
+	if (!AddLabirintColliders(matrix, colArr, matr)) return false;
+}
+
+bool AddLabirintColliders(Matrix* matrix, CollidersArray* colArr, size_t** matr)
+{
 	for (int i = 0; i < matrix->countCol; i++)
 		for (int j = 0; j < matrix->countRow; j++)
 		{
@@ -212,6 +217,7 @@ bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 			else
 				matrix->tileArray[i][j].collider = NULL;
 		}
+	return true;
 }
 
 bool InitLabirintMatrix(Matrix* matrix)

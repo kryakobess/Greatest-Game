@@ -265,6 +265,7 @@ void DataAcceptence(char* received)
 }
 
 void* SendData(void* arg) {
+	bool hasMap = false;
 	while (true) {
 		char* structure;
 
@@ -405,9 +406,6 @@ bool InitializeGameData(enum DataType dataType)
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_TRAP_COL_ID] = true;
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_PLAYER_COL_ID] = true;
 
-		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
-		BG_WIDTH = gMatrix.countCol* WIDTH_TILE;
-		BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
 		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
@@ -429,12 +427,36 @@ bool InitializeGameData(enum DataType dataType)
 		if (dataType == HOST) {
 			InitDateBase(&gDataBase);
 			AddStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
+			if (!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
+			BG_WIDTH = gMatrix.countCol * WIDTH_TILE;
+			BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
 		}
 		strcpy(playerNames[LocalPlayer], gMyLogin);
 		if (dataType == CLIENT) {
 			pthread_t sendData;
 			int status = pthread_create(&sendData, NULL, SendData, (void*)NULL);
 			pthread_detach(sendData);
+
+			size_t** servMatr = (size_t**)calloc(3, sizeof(size_t*));
+			for (int i = 0; i < 3; i++)
+				servMatr[i] = (size_t*)calloc(3, sizeof(size_t));
+			gMatrix.countCol = 3;
+			gMatrix.countRow = 3;
+			servMatr[0][0] = CLEAR_STONE;
+			servMatr[0][1] = GROUND;
+			servMatr[0][2] = GROUND;
+			servMatr[1][0] = GROUND;
+			servMatr[1][1] = GROUND;
+			servMatr[1][2] = GROUND;
+			servMatr[2][0] = CLEAR_STONE;
+			servMatr[2][1] = CLEAR_STONE;
+			servMatr[2][2] = CLEAR_STONE;
+
+
+			if (!InitLabirintMatrix(&gMatrix)) return false;
+			if (!AddLabirintColliders(&gMatrix, gCollidersArray, servMatr)) return false;
+			BG_WIDTH = gMatrix.countCol * WIDTH_TILE;
+			BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
 		}
 	}
 	return true;

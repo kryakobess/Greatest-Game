@@ -52,6 +52,7 @@ typedef struct Matrix
 
 void DrawLabirint(SDL_Renderer* render, SDL_Rect* camera, Matrix* matrix);
 bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr);
+bool AddLabirintColliders(Matrix* matrix, CollidersArray* colArr, size_t** matr);
 bool InitLabirintMatrix(Matrix* matrix);
 
 #endif // !GAME_MAP
