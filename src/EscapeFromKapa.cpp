@@ -97,10 +97,11 @@ void DataProcessing(char* received, char* transmit) {
 	//We check how many players are connected to server and send to client ASCII code of players count then we send names from data base
 	// Receive format: "{TASK}/ClientPlayersCount/"
 	//Transmit format: "{TASK}/PlayersCount/[P1_name][P2_name][PN_name]"
-	/*if (!strcmp("SPC", task)) {
+	if (!strcmp("SPC", task)) {
 		int curClientCount = 0;
 		sscanf(received, "{%[A-Z ]}/%d/", task, &curClientCount);
 		if (curClientCount != gDataBase.countStructure) {
+			printf("I send %d players\n", gDataBase.countStructure);
 			sprintf(transmit, "{SPC}/%d/[", gDataBase.countStructure);
 			int trnLen = 0;
 			for (int i = 0; i < gDataBase.countStructure; ++i) {
@@ -114,7 +115,7 @@ void DataProcessing(char* received, char* transmit) {
 		else {
 			sprintf(transmit, "{SPC}/%d/", -1);
 		}
-	}*/
+	}
 }
 
 void DataAcceptence(char* received)
@@ -171,11 +172,12 @@ void DataAcceptence(char* received)
 			//printf("Data_Sent\n");
 		}
 	}
-	/*if (!strcmp("SPC", task)) {
+	if (!strcmp("SPC", task)) {
 		int clientCount;
 		sscanf(received, "{%[A-Z ]}/%d/", task, &clientCount);
 		if (clientCount != -1)
 		{
+			printf("I have %d players\n", playerCount);
 			playerCount = clientCount;
 			for (int i = 0; i < playerCount; i++)
 			{
@@ -219,7 +221,7 @@ void DataAcceptence(char* received)
 				}
 			}
 		}
-	}*/
+	}
 }
 
 void* SendData(void* arg) {

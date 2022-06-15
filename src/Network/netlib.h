@@ -5,7 +5,6 @@
 #define MAXSIZECLENTS 50
 #define MAX_DATA_SIZE 1024
 
-
 #include <pthread.h>
 #pragma comment(lib, "ws2_32.lib")
 #include <stdbool.h>
