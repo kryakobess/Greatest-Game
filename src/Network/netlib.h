@@ -3,7 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define HAVE_STRUCT_TIMESPEC
 #define MAXSIZECLENTS 50
-#define MAX_DATA_SIZE 1024
+#define MAX_DATA_SIZE 4096
 
 #include <pthread.h>
 #pragma comment(lib, "ws2_32.lib")
