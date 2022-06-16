@@ -70,7 +70,6 @@ void ReleaseSpikes(character* players[], int pCount, int velCoef, CollidersArray
 }
 
 void ActivateSword(gameItem* sword, int spriteNumber, SDL_Rect* posRect) {
-	sword->isActive = true;
 	int y0 = posRect->y; int x0 = posRect->x;
 	int w = posRect->w; int h = posRect->h;
 	switch (spriteNumber) {
@@ -107,7 +106,6 @@ void ActivateSword(gameItem* sword, int spriteNumber, SDL_Rect* posRect) {
 		sword->itemModel.posRect.w = 2 * w;
 		break;
 	}
-	Timer_Start(&sword->delay);
 }
 
 void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int spriteDirect) {
