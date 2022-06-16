@@ -140,6 +140,7 @@ void DataProcessing(char* received, char* transmit) {
 		for (row = 0; row < gMatrix.countRow - s_row; ++row) {
 			for (col = 0; col < gMatrix.countCol - s_col; ++col) {
 				char numString[5] = { 0 };
+				printf("%d;%d\n", row + s_row, col + s_col);
 				sprintf(numString, "%d", (int)gMatrix.tileArray[row+s_row][col+s_col].tileType);
 				strcat(transmit, numString);
 				int curNumLen = strlen(numString);
@@ -314,11 +315,15 @@ void DataAcceptence(char* received)
 		if (strlen(gLabirintString) != 0) {
 			tLen = strlen(task) + 2 + strlen(answ) + 2 + strlen(scale) + 2;
 		}
+		printf("rec = %d\n", strlen(received));
+		int iii = 0;
 		for (static int i = 0; i < MAX_LAB_STR_LEN; ++i) {
-			if (received[tLen + i] != '\0') {
-				gLabirintString[i] = received[tLen + i];
-			}
-			else break;
+			if (tLen + iii < strlen(received))
+			{
+				gLabirintString[i] = received[tLen + iii];
+				printf("%d\n", i);
+			} else break;
+			iii++;
 		}
 		if (!strcmp("OK", answ)) {
 			hasMap = true;
