@@ -455,10 +455,10 @@ bool InitializeGameData(enum DataType dataType)
 		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));
 		if (!characterInit(players[LocalPlayer], gAssetTextures[players[LocalPlayer]->model.asset], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
-		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
+		if (!initGameItem(&players[LocalPlayer]->trap, gAssetTextures[A_I_SPIKES],
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
-		if (!initGameItem(&players[LocalPlayer]->sword, loadTexture("slash3.png", &gRenderer), { 0,0,0,0 }, { 0,0,0, 0 }, { 0 }, ActivateSword, gCollidersArray, ONLINE_SWORD_COL_ID)) return false;
+		if (!initGameItem(&players[LocalPlayer]->sword, gAssetTextures[A_I_SWORD], {0,0,0,0}, {0,0,0, 0}, {0}, ActivateSword, gCollidersArray, ONLINE_SWORD_COL_ID)) return false;
 		players[LocalPlayer]->hasSword = true;
 		for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
 			for (int j = 0; j < SPRITE_NUMBER; ++j) {
