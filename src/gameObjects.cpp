@@ -260,36 +260,36 @@ void HandleMovement(character* c[], const Uint8* move, int objCount, int players
 	SavePlayersPosition(c, playersCount, yShift , xShift, LocalPlayer);
 	//printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
 	//Shift box Colliders
-	int i = 0;
-	do
-	{
-		i++;
-		if (i >= 3) break;
-		GetCollisionStates(colArr, &c[LocalPlayer]->camera);
-		for (int i = 0; i < matrix->countCol; i++)
-			for (int j = 0; j < matrix->countRow; j++)
-			{
-				if (matrix->tileArray[i][j].collider != NULL)
-				{
-					if (isCollided(c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
-					{
-						/*if (matrix->tileArray[i][j].collider->active)
-						{*/
-						((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera.x,
-						matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera.y,
-						matrix->tileArray[i][j].tileBox.w,
-						matrix->tileArray[i][j].tileBox.h };
-						//}
-						matrix->tileArray[i][j].collider->active = true;
-					}
-					else
-						matrix->tileArray[i][j].collider->active = false;
-				}
-			}
-		if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID])
+	
+	for (int i = 0; i < matrix->countCol; i++)
+		for (int j = 0; j < matrix->countRow; j++)
 		{
-			moveCharacter(c[LocalPlayer], -xShift, -yShift, -xPosShift, -yPosShift);
-			SavePlayersPosition(c, playersCount, -yShift, -xShift, LocalPlayer);
+			if (matrix->tileArray[i][j].collider != NULL)
+			{
+				if (isCollided(c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
+				{
+					/*if (matrix->tileArray[i][j].collider->active)
+					{*/
+					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera.x,
+					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera.y,
+					matrix->tileArray[i][j].tileBox.w,
+					matrix->tileArray[i][j].tileBox.h };
+					//}
+					matrix->tileArray[i][j].collider->active = true;
+				}
+				else
+					matrix->tileArray[i][j].collider->active = false;
+			}
 		}
-	} while (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID]);
+
+	GetCollisionStates(colArr, &c[LocalPlayer]->camera);
+
+
+
+	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID])
+	{
+		printf("7\n");
+		moveCharacter(c[LocalPlayer], -xShift, -yShift, -xPosShift, -yPosShift);
+		SavePlayersPosition(c, playersCount, -yShift, -xShift, LocalPlayer);
+	}
 }
