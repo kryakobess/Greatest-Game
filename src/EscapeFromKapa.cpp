@@ -160,7 +160,7 @@ void DataProcessing(char* received, char* transmit) {
 				break;
 			}
 		}
-		if (row * col == gMatrix.countCol * gMatrix.countRow) {
+		if (s_row * s_col == gMatrix.countCol * gMatrix.countRow) {
 			transmit[6] = 'O';
 			transmit[7] = 'K';
 		}
@@ -311,10 +311,10 @@ void DataAcceptence(char* received)
 		}
 	}
 	if (!strcmp(task, "SMM")) {
-		int tLen = strlen(task) + 2;
 		char answ[5] = { 0 };
 		char scale[5] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[A-Z ]][%[a-zA-Z0-9: ]]", task, answ, scale);
+		int tLen = strlen(task) + 2 + strlen(answ) + 2;
 		if (!strcmp("OK", answ)) {
 			hasMap = true;
 		}
