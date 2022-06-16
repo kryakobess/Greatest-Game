@@ -214,23 +214,10 @@ void HandleMovement(character* c[], const Uint8* move, int objCount, int players
 	c[LocalPlayer]->VelCoef = velCoef;
 	ReleaseSpikes(c, playersCount, velCoef, colArr, &c[LocalPlayer]->camera, LocalPlayer);
 
-	int yShift = 0; int xShift = 0;
-	int xPosShift = 0; int yPosShift = 0;
+	///////// LEFT + RIGHT
+	int xShift = 0;
+	int xPosShift = 0;
 	const Uint8* currentKeyStates = move;
-	if (currentKeyStates[SDL_SCANCODE_W]) {
-		if (c[LocalPlayer]->camera.y > 0 && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
-		else if (c[LocalPlayer]->model.posRect.y > 0) yPosShift -= VELOCITY;
-		if (velCoef != 0) {
-			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_UP; c[LocalPlayer]->spriteNumber[1]++;
-		}
-	}
-	if (currentKeyStates[SDL_SCANCODE_S]) {
-		if (c[LocalPlayer]->camera.y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2 )<= 10)) yShift += VELOCITY;
-		else if (c[LocalPlayer]->model.posRect.y < HEIGHT_w - c[LocalPlayer]->model.posRect.h) yPosShift += VELOCITY;
-		if (velCoef != 0) {
-			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c[LocalPlayer]->spriteNumber[1]++;
-		}
-	}
 	if (currentKeyStates[SDL_SCANCODE_A]) {
 		if (c[LocalPlayer]->camera.x > 0 && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
 		else if (c[LocalPlayer]->model.posRect.x > 0) xPosShift -= VELOCITY;
@@ -253,14 +240,10 @@ void HandleMovement(character* c[], const Uint8* move, int objCount, int players
 		c[LocalPlayer]->stamina -= 1.5;
 		if (c[LocalPlayer]->stamina < 5) c[LocalPlayer]->canRun = false;
 	}
-
-	xShift *= c[LocalPlayer]->VelCoef; yShift *= c[LocalPlayer]->VelCoef;
-	xPosShift *= c[LocalPlayer]->VelCoef; yPosShift *= c[LocalPlayer]->VelCoef;
-	moveCharacter(c[LocalPlayer], xShift, yShift, xPosShift, yPosShift);
-	SavePlayersPosition(c, playersCount, yShift , xShift, LocalPlayer);
-	//printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
-	//Shift box Colliders
-	
+	xShift *= c[LocalPlayer]->VelCoef;
+	xPosShift *= c[LocalPlayer]->VelCoef;
+	moveCharacter(c[LocalPlayer], xShift, 0, xPosShift, 0);
+	SavePlayersPosition(c, playersCount, 0, xShift, LocalPlayer);
 	for (int i = 0; i < matrix->countCol; i++)
 		for (int j = 0; j < matrix->countRow; j++)
 		{
@@ -268,28 +251,65 @@ void HandleMovement(character* c[], const Uint8* move, int objCount, int players
 			{
 				if (isCollided(c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
 				{
-					/*if (matrix->tileArray[i][j].collider->active)
-					{*/
 					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera.x,
 					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera.y,
 					matrix->tileArray[i][j].tileBox.w,
 					matrix->tileArray[i][j].tileBox.h };
-					//}
 					matrix->tileArray[i][j].collider->active = true;
 				}
 				else
 					matrix->tileArray[i][j].collider->active = false;
 			}
 		}
-
 	GetCollisionStates(colArr, &c[LocalPlayer]->camera);
-
-
-
 	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID])
 	{
-		printf("7\n");
-		moveCharacter(c[LocalPlayer], -xShift, -yShift, -xPosShift, -yPosShift);
-		SavePlayersPosition(c, playersCount, -yShift, -xShift, LocalPlayer);
+		moveCharacter(c[LocalPlayer], -xShift, 0, -xPosShift, 0);
+		SavePlayersPosition(c, playersCount, 0, -xShift, LocalPlayer);
+	}
+
+	/////// UP + DOWN
+	int yShift = 0;
+	int yPosShift = 0;
+	if (currentKeyStates[SDL_SCANCODE_W]) {
+		if (c[LocalPlayer]->camera.y > 0 && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2) <= 10)) yShift -= VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.y > 0) yPosShift -= VELOCITY;
+		if (velCoef != 0) {
+			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_UP; c[LocalPlayer]->spriteNumber[1]++;
+		}
+	}
+	if (currentKeyStates[SDL_SCANCODE_S]) {
+		if (c[LocalPlayer]->camera.y < BG_HEIGHT && (abs(c[LocalPlayer]->model.posRect.y - HEIGHT_w / 2) <= 10)) yShift += VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.y < HEIGHT_w - c[LocalPlayer]->model.posRect.h) yPosShift += VELOCITY;
+		if (velCoef != 0) {
+			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c[LocalPlayer]->spriteNumber[1]++;
+		}
+	}
+	yShift *= c[LocalPlayer]->VelCoef;
+	yPosShift *= c[LocalPlayer]->VelCoef;
+	moveCharacter(c[LocalPlayer], 0, yShift, 0, yPosShift);
+	SavePlayersPosition(c, playersCount, yShift, 0, LocalPlayer);
+	for (int i = 0; i < matrix->countCol; i++)
+		for (int j = 0; j < matrix->countRow; j++)
+		{
+			if (matrix->tileArray[i][j].collider != NULL)
+			{
+				if (isCollided(c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
+				{
+					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera.x,
+					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera.y,
+					matrix->tileArray[i][j].tileBox.w,
+					matrix->tileArray[i][j].tileBox.h };
+					matrix->tileArray[i][j].collider->active = true;
+				}
+				else
+					matrix->tileArray[i][j].collider->active = false;
+			}
+		}
+	GetCollisionStates(colArr, &c[LocalPlayer]->camera);
+	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID])
+	{
+		moveCharacter(c[LocalPlayer], 0, -yShift, 0, -yPosShift);
+		SavePlayersPosition(c, playersCount, -yShift, 0, LocalPlayer);
 	}
 }
