@@ -160,12 +160,12 @@ void DataProcessing(char* received, char* transmit) {
 				break;
 			}
 		}
+		s_row += row;
+		s_col += col;
 		if (s_row * s_col == gMatrix.countCol * gMatrix.countRow) {
 			transmit[6] = 'O';
 			transmit[7] = 'K';
 		}
-		s_row = row;
-		s_col = col;
 	}
 }
 

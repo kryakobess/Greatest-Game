@@ -177,8 +177,8 @@ bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 {
 	srand((unsigned int)time(NULL));
 	int r = rand() % 20;
-	matrix->countCol = 21;
-	matrix->countRow = 21;
+	matrix->countCol = 41;
+	matrix->countRow = 41;
 
 	printf("Labirint with Col:%u and Row:%u\n", matrix->countCol, matrix->countRow);
 	size_t** matr = NULL;
