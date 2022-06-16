@@ -25,6 +25,7 @@ char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 int LocalPlayer = 0;
 bool gRewrited = false;
 bool hasMap = false;
+bool canGetMapData = true;
 char gLabirintString[MAX_LAB_STR_LEN] = { 0 };
 
 void DataProcessing(char* received, char* transmit) {
@@ -329,6 +330,7 @@ void DataAcceptence(char* received)
 				else break;
 			}
 		}
+		canGetMapData = true;
 	}
 }
 
@@ -348,13 +350,12 @@ void* SendData(void* arg) {
 		while (strlen(gClient.sentData) != 0);
 
 		while (hasMap == false) {
-			bool getMapData = false;
-			if (getMapData == false) {
+			if (canGetMapData == true) {
+				canGetMapData = false;
 				gClient.ApplySending = false;
 				strcpy(gClient.sentData, "{SMM}");
 				gClient.ApplySending = true;
 				while (strlen(gClient.sentData) != 0);
-				getMapData = true;
 			}
 		}
 
