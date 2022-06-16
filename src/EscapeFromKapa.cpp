@@ -24,11 +24,13 @@ int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 int LocalPlayer = 0;
 bool gRewrited = false;
+char gLabirintString[MAX_LAB_STR_LEN] = { 0 };
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
 	SMP — Send My Position 
-	SPC — Send Players' Count*/
+	SPC — Send Players' Count
+	SMM -- Send Me Map*/
 	char task[5] = {0};
 	sscanf(received, "{%[A-Z ]}", task);
 	//Saving structures from Data Base in transmit variable: "<name> <structure>". 
@@ -121,6 +123,23 @@ void DataProcessing(char* received, char* transmit) {
 		}
 		else {
 			sprintf(transmit, "{SPC}/%d/", -1);
+		}
+	}
+	// Receive format: "{SMM}"
+	// Transmit format: "{SMM}[row;col] Cycle_Numbers"
+	if (!strcmp("SMM", task)) {
+		sprintf(transmit, "{SMM}[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+		int tShift = strlen(transmit);
+		for (int row = 0; row < gMatrix.countRow; ++row) {
+			for (int col = 0; col < gMatrix.countCol; ++col) {
+				char numString[5] = { 0 };
+				sprintf(numString, "%d", (int)gMatrix.tileArray[row][col].tileType);
+				strcat(transmit, numString);
+				tShift += strlen(numString);
+				transmit[tShift] = ';';
+				tShift += 1;
+				transmit[tShift] = '\0';
+			}
 		}
 	}
 }
@@ -260,9 +279,19 @@ void DataAcceptence(char* received)
 			}
 		}
 	}
+	if (!strcmp(task, "SMM")) {
+		int tLen = strlen(task) + 2;
+		for (int i = 0; i < MAX_LAB_STR_LEN; ++i) {
+			if (received[tLen + i] != '\0') {
+				gLabirintString[i] = received[tLen + i];
+			}
+			else break;
+		}
+	}
 }
 
 void* SendData(void* arg) {
+	bool hasMap = false;
 	while (true) {
 		char* structure;
 
@@ -277,6 +306,14 @@ void* SendData(void* arg) {
 		gClient.sentData[sentLen + i] = ']';
 		gClient.ApplySending = true;
 		while (strlen(gClient.sentData) != 0);
+
+		if (hasMap == false) {
+			gClient.ApplySending = false;
+			strcpy(gClient.sentData, "{SMM}");
+			gClient.ApplySending = true;
+			while (strlen(gClient.sentData) != 0);
+			hasMap = true;
+		}
 
 		gClient.ApplySending = false;
 		sprintf(gClient.sentData, "{SPC}/%d/\0", playerCount);
@@ -413,10 +450,8 @@ bool InitializeGameData(enum DataType dataType)
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_TRAP_COL_ID] = true;
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_PLAYER_COL_ID] = true;
 
-		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
-		BG_WIDTH = gMatrix.countCol* WIDTH_TILE;
-		BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
 		players[LocalPlayer] = (character*)malloc(sizeof(character));
+		srand(time(NULL));
 		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));
 		if (!characterInit(players[LocalPlayer], gAssetTextures[players[LocalPlayer]->model.asset], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
@@ -434,12 +469,42 @@ bool InitializeGameData(enum DataType dataType)
 		if (dataType == HOST) {
 			InitDateBase(&gDataBase);
 			AddStructureInDateBase(gMyLogin, players[LocalPlayer], sizeof(character), &gDataBase);
+			if (!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
+			BG_WIDTH = gMatrix.countCol * WIDTH_TILE;
+			BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
 		}
 		strcpy(playerNames[LocalPlayer], gMyLogin);
 		if (dataType == CLIENT) {
+			gLabirintString[0] = '\0';
 			pthread_t sendData;
 			int status = pthread_create(&sendData, NULL, SendData, (void*)NULL);
 			pthread_detach(sendData);
+
+			while(strlen(gLabirintString)==0){}
+			sscanf(gLabirintString, "[%d;%d]", &gMatrix.countRow, &gMatrix.countCol);
+			size_t** servMatr = (size_t**)calloc(gMatrix.countRow, sizeof(size_t*));
+			for (int i = 0; i < gMatrix.countRow; i++)
+				servMatr[i] = (size_t*)calloc(gMatrix.countCol, sizeof(size_t));
+			char buf[20] = { 0 };
+			sprintf(buf, "[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+			int shift = strlen(buf);
+			for (int i = 0; i < gMatrix.countRow; i++)
+			{
+				for (int j = 0; j < gMatrix.countCol; j++)
+				{
+					sscanf(gLabirintString + shift, "%d;", &servMatr[j][i]);
+					int shift_2;
+					char buffer[5] = { 0 };
+					sprintf(buffer, "%d;", servMatr[j][i]);
+					shift_2 = strlen(buffer);
+					shift += shift_2;
+				}
+			}
+
+			if (!InitLabirintMatrix(&gMatrix)) return false;
+			if (!AddLabirintColliders(&gMatrix, gCollidersArray, servMatr)) return false;
+			BG_WIDTH = gMatrix.countCol * WIDTH_TILE;
+			BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
 		}
 	}
 	return true;
