@@ -24,6 +24,7 @@ int playerCount = 1;
 char playerNames[MAX_PLAYER_COUNT][MAX_LOGIN_SIZE];
 int LocalPlayer = 0;
 bool gRewrited = false;
+bool hasMap = false;
 char gLabirintString[MAX_LAB_STR_LEN] = { 0 };
 
 void DataProcessing(char* received, char* transmit) {
@@ -126,21 +127,40 @@ void DataProcessing(char* received, char* transmit) {
 		}
 	}
 	// Receive format: "{SMM}"
-	// Transmit format: "{SMM}[row;col] Cycle_Numbers"
+	// Transmit format: if labirint haven't sent fully "{SMM}[row;col] Cycle_Numbers", else "{SMM}[OK]"
 	if (!strcmp("SMM", task)) {
 		sprintf(transmit, "{SMM}[%d;%d]", gMatrix.countRow, gMatrix.countCol);
 		int tShift = strlen(transmit);
-		for (int row = 0; row < gMatrix.countRow; ++row) {
-			for (int col = 0; col < gMatrix.countCol; ++col) {
+		bool sending = true;
+		static int s_row = 0;
+		static int s_col = 0;
+		int row = s_row;
+		int col = s_col;
+		for (row; row < gMatrix.countRow; ++row) {
+			for (col; col < gMatrix.countCol; ++col) {
 				char numString[5] = { 0 };
 				sprintf(numString, "%d", (int)gMatrix.tileArray[row][col].tileType);
 				strcat(transmit, numString);
-				tShift += strlen(numString);
+				int curNumLen = strlen(numString);
+				tShift += curNumLen;
 				transmit[tShift] = ';';
 				tShift += 1;
-				transmit[tShift] = '\0';
+				if (tShift <= 1000) {
+					transmit[tShift] = '\0';
+				}
+				else {
+					tShift -= (curNumLen + 1);
+					transmit[tShift] = '\0';
+					sending = false;
+					break;
+				}
+			}
+			if (sending == false) {
+				break;
 			}
 		}
+		s_row = row;
+		s_col = col;
 	}
 }
 
@@ -287,20 +307,29 @@ void DataAcceptence(char* received)
 	}
 	if (!strcmp(task, "SMM")) {
 		int tLen = strlen(task) + 2;
-		for (int i = 0; i < MAX_LAB_STR_LEN; ++i) {
-			if (received[tLen + i] != '\0') {
-				gLabirintString[i] = received[tLen + i];
+		char answ[5] = { 0 };
+		sscanf(received, "{%[A-Z ]}[[%A-Z ]]", task, answ);
+		if (!strcmp("OK", answ)) {
+			hasMap = true;
+		}
+		else {
+			int labLen = strlen(gLabirintString);
+			if (labLen  != 0) {
+				tLen = strlen(task) + 2 + strlen(answ) + 2;
 			}
-			else break;
+			for (int i = labLen; i < MAX_LAB_STR_LEN; ++i) {
+				if (received[tLen + i] != '\0') {
+					gLabirintString[i] = received[tLen + i];
+				}
+				else break;
+			}
 		}
 	}
 }
 
 void* SendData(void* arg) {
-	bool hasMap = false;
 	while (true) {
 		char* structure;
-
 		gClient.ApplySending = false;
 		SaveStructureToString(players[LocalPlayer], sizeof(character), &structure);
 		sprintf(gClient.sentData, "{SMP}[%s][%d][", gMyLogin, sizeof(character));
@@ -313,12 +342,15 @@ void* SendData(void* arg) {
 		gClient.ApplySending = true;
 		while (strlen(gClient.sentData) != 0);
 
-		if (hasMap == false) {
-			gClient.ApplySending = false;
-			strcpy(gClient.sentData, "{SMM}");
-			gClient.ApplySending = true;
-			while (strlen(gClient.sentData) != 0);
-			hasMap = true;
+		while (hasMap == false) {
+			bool getMapData = false;
+			if (getMapData == false) {
+				gClient.ApplySending = false;
+				strcpy(gClient.sentData, "{SMM}");
+				gClient.ApplySending = true;
+				while (strlen(gClient.sentData) != 0);
+				getMapData = true;
+			}
 		}
 
 		gClient.ApplySending = false;
@@ -488,7 +520,7 @@ bool InitializeGameData(enum DataType dataType)
 			int status = pthread_create(&sendData, NULL, SendData, (void*)NULL);
 			pthread_detach(sendData);
 
-			while(strlen(gLabirintString)==0){}
+			while(hasMap == false){}
 			sscanf(gLabirintString, "[%d;%d]", &gMatrix.countRow, &gMatrix.countCol);
 			size_t** servMatr = (size_t**)calloc(gMatrix.countRow, sizeof(size_t*));
 			for (int i = 0; i < gMatrix.countRow; i++)
