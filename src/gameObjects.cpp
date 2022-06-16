@@ -169,20 +169,6 @@ void RenderObject(gameObj* obj, SDL_Renderer* renderer)
 	SDL_RenderCopy(renderer, obj->texture, &(obj->srcRect), &(obj->posRect));
 }
 
-void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift) 
-{
-	for (int i = 0; i < objCount; i++) {
-		//if (objs[i]->posRect != {0, 0, 0, 0}) {
-			objs[i]->posRect.y -= yShift;
-			objs[i]->posRect.x -= xShift;
-		//}
-		if (objs[i]->body->active)	{
-			((BoxCollider*)(objs[i]->body->collider))->rect.y -= yShift;
-			((BoxCollider*)(objs[i]->body->collider))->rect.x -= xShift;
-		}
-	}
-}
-
 void SavePlayersPosition(character** p, int pCount, int yShift, int xShift, int LocalPlayer) {
 	for (int i = 0; i < pCount; ++i) {
 		if (i != LocalPlayer) {
@@ -219,7 +205,7 @@ void moveCharacter(character* c, int xShift, int yShift, int xPosShift, int yPos
 	c->camera.x += xShift; c->camera.y += yShift;
 }
 
-void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix, int BG_WIDTH, int BG_HEIGHT, int LocalPlayer)
+void HandleMovement(character* c[], const Uint8* move, int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix, int BG_WIDTH, int BG_HEIGHT, int LocalPlayer)
 {
 	if (c[LocalPlayer]->stamina < 100) {
 		c[LocalPlayer]->stamina += 0.5;
@@ -271,7 +257,6 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 	xShift *= c[LocalPlayer]->VelCoef; yShift *= c[LocalPlayer]->VelCoef;
 	xPosShift *= c[LocalPlayer]->VelCoef; yPosShift *= c[LocalPlayer]->VelCoef;
 	moveCharacter(c[LocalPlayer], xShift, yShift, xPosShift, yPosShift);
-	SaveObjPosition(objs, objCount, yShift, xShift);
 	SavePlayersPosition(c, playersCount, yShift , xShift, LocalPlayer);
 	//printf("Cam pos{%d,%d} size{%d,%d}\n", camera->x, camera->y, camera->w, camera->h);
 	//Shift box Colliders
@@ -305,7 +290,6 @@ void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objC
 		{
 			moveCharacter(c[LocalPlayer], -xShift, -yShift, -xPosShift, -yPosShift);
 			SavePlayersPosition(c, playersCount, -yShift, -xShift, LocalPlayer);
-			SaveObjPosition(objs, objCount, -yShift, -xShift);
 		}
 	} while (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID]);
 }

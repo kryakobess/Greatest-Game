@@ -18,6 +18,8 @@ const enum AssetStatus {
 	A_FMALE_1,
 	A_E_ELF,
 	A_E_GHOST,
+	A_I_SWORD,
+	A_I_SPIKES,
 	ASSETS_TOTAL
 };
 
@@ -74,7 +76,7 @@ void AttackSword(gameItem* sword, SDL_Renderer* gRenderer, int delay, int sprite
 //Character functions
 
 bool characterInit(character* c, SDL_Texture* t, SDL_Rect pos, SDL_Rect cBox, SDL_Rect hitBox, SDL_Rect camera, CollidersArray* colArr);
-void HandleMovement(character* c[], const Uint8* move, gameObj* objs[], int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix, int BG_WIDTH, int BG_HEIGHT, int LocalPlayer);
+void HandleMovement(character* c[], const Uint8* move, int objCount, int playersCount, double velCoef, CollidersArray* colArr, Matrix* matrix, int BG_WIDTH, int BG_HEIGHT, int LocalPlayer);
 void SaveObjPosition(gameObj* objs[], int objCount, int yShift, int xShift);
 
 

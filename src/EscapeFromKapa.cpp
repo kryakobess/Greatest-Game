@@ -9,10 +9,8 @@ Mix_Chunk* gSwordAttackChunk = NULL;
 CollidersArray* gCollidersArray = NULL;
 Matrix gMatrix;
 SDL_Rect gSpriteClips[KEY_PRESS_SURFACE_TOTAL][SPRITE_NUMBER];
-SDL_Texture* gSpriteTexture[ASSETS_TOTAL] = { 0 };
+SDL_Texture* gAssetTextures[ASSETS_TOTAL] = { 0 };
 SDL_Texture* gBackground = NULL;
-gameObj rockUp; gameObj rockDown; gameObj sampleRock;
-gameObj* objs[] = { &rockUp, &rockDown, &sampleRock };
 int objNumber = 3;
 int BG_WIDTH = 3800;
 int BG_HEIGHT = 2170;
@@ -171,7 +169,7 @@ void DataAcceptence(char* received)
 						temp_player->model.body = body;
 						temp_player->trap.itemModel.body = trap;
 
-						temp_player->model.texture = gSpriteTexture[temp_player->model.asset];
+						temp_player->model.texture = gAssetTextures[temp_player->model.asset];
 
 						players[id] = temp_player;
 						free(old_player);
@@ -224,7 +222,7 @@ void DataAcceptence(char* received)
 					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
 					players[i]->trap.itemModel.body->collider = ptr;
 
-					players[i]->model.texture = gSpriteTexture[players[i]->model.asset];
+					players[i]->model.texture = gAssetTextures[players[i]->model.asset];
 				}
 			}
 			char buf[100];
@@ -302,49 +300,59 @@ bool loadMedia()
 	//Loading success flag
 	bool success = true;
 
-	gSpriteTexture[A_E_ELF] = loadTexture("E_elf.png", &gRenderer);
-	if (gSpriteTexture[A_E_ELF] == NULL) {
+	gAssetTextures[A_E_ELF] = loadTexture("E_elf.png", &gRenderer);
+	if (gAssetTextures[A_E_ELF] == NULL) {
 		printf("A_E_ELF texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_BOY_1] = loadTexture("boy_1.png", &gRenderer);
-	if (gSpriteTexture[A_BOY_1] == NULL) {
+	gAssetTextures[A_BOY_1] = loadTexture("boy_1.png", &gRenderer);
+	if (gAssetTextures[A_BOY_1] == NULL) {
 		printf("A_BOY_1 texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_BOY_2] = loadTexture("boy_2.png", &gRenderer);
-	if (gSpriteTexture[A_BOY_2] == NULL) {
+	gAssetTextures[A_BOY_2] = loadTexture("boy_2.png", &gRenderer);
+	if (gAssetTextures[A_BOY_2] == NULL) {
 		printf("A_BOY_2 texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_GIRL_1] = loadTexture("girl_1.png", &gRenderer);
-	if (gSpriteTexture[A_GIRL_1] == NULL) {
+	gAssetTextures[A_GIRL_1] = loadTexture("girl_1.png", &gRenderer);
+	if (gAssetTextures[A_GIRL_1] == NULL) {
 		printf("A_GIRL_1 texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_GIRL_2] = loadTexture("girl_2.png", &gRenderer);
-	if (gSpriteTexture[A_GIRL_2] == NULL) {
+	gAssetTextures[A_GIRL_2] = loadTexture("girl_2.png", &gRenderer);
+	if (gAssetTextures[A_GIRL_2] == NULL) {
 		printf("A_GIRL_2 texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_MALE_1] = loadTexture("male_1.png", &gRenderer);
-	if (gSpriteTexture[A_MALE_1] == NULL) {
+	gAssetTextures[A_MALE_1] = loadTexture("male_1.png", &gRenderer);
+	if (gAssetTextures[A_MALE_1] == NULL) {
 		printf("A_MALE_1 texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_MALE_2] = loadTexture("male_2.png", &gRenderer);
-	if (gSpriteTexture[A_MALE_2] == NULL) {
+	gAssetTextures[A_MALE_2] = loadTexture("male_2.png", &gRenderer);
+	if (gAssetTextures[A_MALE_2] == NULL) {
 		printf("A_MALE_2 texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_FMALE_1] = loadTexture("fmale_1.png", &gRenderer);
-	if (gSpriteTexture[A_FMALE_1] == NULL) {
+	gAssetTextures[A_FMALE_1] = loadTexture("fmale_1.png", &gRenderer);
+	if (gAssetTextures[A_FMALE_1] == NULL) {
 		printf("A_FMALE_1 texture loading fail!");
 		success = false;
 	}
-	gSpriteTexture[A_E_GHOST] = loadTexture("e_girl.png", &gRenderer);
-	if (gSpriteTexture[A_E_GHOST] == NULL) {
+	gAssetTextures[A_E_GHOST] = loadTexture("e_girl.png", &gRenderer);
+	if (gAssetTextures[A_E_GHOST] == NULL) {
 		printf("A_E_GHOST texture loading fail!");
+		success = false;
+	}
+	gAssetTextures[A_I_SWORD] = loadTexture("slash3.png", &gRenderer);
+	if (gAssetTextures[A_I_SWORD] == NULL) {
+		printf("A_I_SWORD texture loading fail!");
+		success = false;
+	}
+	gAssetTextures[A_I_SPIKES] = loadTexture("trap.png", &gRenderer);
+	if (gAssetTextures[A_I_SPIKES] == NULL) {
+		printf("A_I_SPIKES texture loading fail!");
 		success = false;
 	}
 	for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
@@ -408,12 +416,9 @@ bool InitializeGameData(enum DataType dataType)
 		if(!InitCreateLabirint(&gMatrix, gCollidersArray)) return false;
 		BG_WIDTH = gMatrix.countCol* WIDTH_TILE;
 		BG_HEIGHT = gMatrix.countRow * HEIGHT_TILE;
-		if (!initGameObject(&rockUp, loadTexture("rock.png", &gRenderer), { 800, 450, 70, 65 }, { 0,0,160,80 }, { 800, 450, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
-		if (!initGameObject(&rockDown, rockUp.texture, { 800, 450 + 65, 70, 65 }, { 0, 80, 160, 80 }, { 800, 450 + 65, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
-		if (!initGameObject(&sampleRock, rockUp.texture, { -1500, -750, 70, 65 }, { 0, 0, 160, 160 }, { -1500, -750, 70, 65 }, gCollidersArray, ROCK_COL_ID)) return false;
 		players[LocalPlayer] = (character*)malloc(sizeof(character));
 		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));
-		if (!characterInit(players[LocalPlayer], gSpriteTexture[players[LocalPlayer]->model.asset], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
+		if (!characterInit(players[LocalPlayer], gAssetTextures[players[LocalPlayer]->model.asset], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
 		if (!initGameItem(&players[LocalPlayer]->trap, loadTexture("trap.png", &gRenderer),
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
@@ -521,7 +526,7 @@ void GetData(enum DataType dataType) {
 					AddColliderInArray(gCollidersArray, players[i]->trap.itemModel.body = CreateCollider(ptr = CreateBoxCollider({ 0,0,0,0 }), BOX, ONLINE_TRAP_COL_ID));
 					players[i]->trap.itemModel.body->collider = ptr;
 
-					players[i]->model.texture = gSpriteTexture[players[i]->model.asset];
+					players[i]->model.texture = gAssetTextures[players[i]->model.asset];
 				}
 			}
 		}
@@ -538,7 +543,7 @@ void GetData(enum DataType dataType) {
 			players[i]->feetCol = feet;
 			players[i]->model.body = body;
 			players[i]->trap.itemModel.body = trap;
-			players[i]->model.texture = gSpriteTexture[players[i]->model.asset];
+			players[i]->model.texture = gAssetTextures[players[i]->model.asset];
 		}
 	}
 }
@@ -548,8 +553,6 @@ void Drawing() {
 	SDL_RenderCopy(gRenderer, gBackground, &players[LocalPlayer]->camera, NULL);
 	DrawLabirint(gRenderer, &players[LocalPlayer]->camera, &gMatrix);
 	for (int i = 0; i < playerCount; ++i) { if (players[i]->trap.isActive) RenderObject(&players[i]->trap.itemModel, gRenderer); }
-	RenderObject(&rockDown, gRenderer);
-	RenderObject(&sampleRock, gRenderer);
 	for (int i = playerCount - 1; i >= 0; --i) {
 		if (players[i]->hasSword && players[i]->sword.isActive) {
 			players[i]->model.srcRect = players[i]->spriteClips[players[i]->spriteNumber[0]][1];
@@ -579,7 +582,6 @@ void Drawing() {
 	SDL_RenderFillRect(gRenderer, &staminaLine);
 	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x55, 0x00, 0xFF);
 	SDL_RenderFillRect(gRenderer, &hpLine);
-	RenderObject(&rockUp, gRenderer);
 	SDL_RenderPresent(gRenderer);
 }
 
@@ -600,7 +602,7 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 		}
 	}
 	if (players[LocalPlayer]->sword.isActive) velCoef = 0;
-	HandleMovement(players, movement, objs, objNumber, playerCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT, LocalPlayer);
+	HandleMovement(players, movement, objNumber, playerCount, velCoef, gCollidersArray, &gMatrix, BG_WIDTH, BG_HEIGHT, LocalPlayer);
 	return true;
 }
 
