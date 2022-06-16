@@ -127,9 +127,9 @@ void DataProcessing(char* received, char* transmit) {
 		}
 	}
 	// Receive format: "{SMM}"
-	// Transmit format: if labirint haven't sent fully "{SMM}[row;col] Cycle_Numbers", else "{SMM}[OK]"
+	// Transmit format: if labirint haven't sent fully "{SMM}[NO][row;col] Cycle_Numbers", else "{SMM}[OK][row;col] Cycle_Numbers"
 	if (!strcmp("SMM", task)) {
-		sprintf(transmit, "{SMM}[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+		sprintf(transmit, "{SMM}[NO][%d;%d]", gMatrix.countRow, gMatrix.countCol);
 		int tShift = strlen(transmit);
 		bool sending = true;
 		static int s_row = 0;
@@ -158,6 +158,10 @@ void DataProcessing(char* received, char* transmit) {
 			if (sending == false) {
 				break;
 			}
+		}
+		if (row * col == gMatrix.countCol * gMatrix.countRow) {
+			transmit[6] = 'O';
+			transmit[7] = 'K';
 		}
 		s_row = row;
 		s_col = col;
@@ -308,14 +312,15 @@ void DataAcceptence(char* received)
 	if (!strcmp(task, "SMM")) {
 		int tLen = strlen(task) + 2;
 		char answ[5] = { 0 };
-		sscanf(received, "{%[A-Z ]}[[%A-Z ]]", task, answ);
+		char scale[5] = { 0 };
+		sscanf(received, "{%[A-Z ]}[%[A-Z ]][%[a-zA-Z0-9: ]]", task, answ, scale);
 		if (!strcmp("OK", answ)) {
 			hasMap = true;
 		}
 		else {
 			int labLen = strlen(gLabirintString);
 			if (labLen  != 0) {
-				tLen = strlen(task) + 2 + strlen(answ) + 2;
+				tLen = strlen(task) + 2 + strlen(answ) + 2 + strlen(scale) + 2;
 			}
 			for (int i = labLen; i < MAX_LAB_STR_LEN; ++i) {
 				if (received[tLen + i] != '\0') {
