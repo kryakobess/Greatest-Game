@@ -189,6 +189,9 @@ void DataAcceptence(char* received)
 						temp_player->trap.itemModel.body = trap;
 
 						temp_player->model.texture = gAssetTextures[temp_player->model.asset];
+						temp_player->sword.itemModel.texture = gAssetTextures[A_I_SWORD];
+						temp_player->trap.itemModel.texture = gAssetTextures[A_I_SPIKES];
+						ActivateSword(&temp_player->sword, temp_player->spriteNumber[0], &temp_player->model.posRect);
 
 						players[id] = temp_player;
 						free(old_player);
@@ -242,6 +245,9 @@ void DataAcceptence(char* received)
 					players[i]->trap.itemModel.body->collider = ptr;
 
 					players[i]->model.texture = gAssetTextures[players[i]->model.asset];
+					players[i]->sword.itemModel.texture = gAssetTextures[A_I_SWORD];
+					players[i]->trap.itemModel.texture = gAssetTextures[A_I_SPIKES];
+					ActivateSword(&players[i]->sword, players[i]->spriteNumber[0], &players[i]->model.posRect);
 				}
 			}
 			char buf[100];
@@ -455,10 +461,12 @@ bool InitializeGameData(enum DataType dataType)
 		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));
 		if (!characterInit(players[LocalPlayer], gAssetTextures[players[LocalPlayer]->model.asset], {WIDTH_w / 2, HEIGHT_w / 2, 60, 85}, {WIDTH_w / 2 + 10, HEIGHT_w / 2 + 85 - 25, 40, 25},
 			{ WIDTH_w / 2, HEIGHT_w / 2, 60, 85 }, { 0, 0, WIDTH_w, HEIGHT_w }, gCollidersArray)) return false;
-		if (!initGameItem(&players[LocalPlayer]->trap, gAssetTextures[A_I_SPIKES],
+		players[LocalPlayer]->trap.itemModel.asset = A_I_SPIKES;
+		if (!initGameItem(&players[LocalPlayer]->trap, gAssetTextures[players[LocalPlayer]->trap.itemModel.asset],
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, { 0,0,600,600 },
 			{ players[LocalPlayer]->model.posRect.x, players[LocalPlayer]->model.posRect.y, 100, 100 }, ActivateTrap, gCollidersArray, TRAP_COL_ID)) return false;
-		if (!initGameItem(&players[LocalPlayer]->sword, gAssetTextures[A_I_SWORD], {0,0,0,0}, {0,0,0, 0}, {0}, ActivateSword, gCollidersArray, ONLINE_SWORD_COL_ID)) return false;
+		players[LocalPlayer]->trap.itemModel.asset = A_I_SWORD;
+		if (!initGameItem(&players[LocalPlayer]->sword, gAssetTextures[players[LocalPlayer]->trap.itemModel.asset], {0,0,0,0}, {0,0,0, 0}, {0}, ActivateSword, gCollidersArray, ONLINE_SWORD_COL_ID)) return false;
 		players[LocalPlayer]->hasSword = true;
 		for (int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i) {
 			for (int j = 0; j < SPRITE_NUMBER; ++j) {
@@ -592,6 +600,9 @@ void GetData(enum DataType dataType) {
 					players[i]->trap.itemModel.body->collider = ptr;
 
 					players[i]->model.texture = gAssetTextures[players[i]->model.asset];
+					players[i]->sword.itemModel.texture = gAssetTextures[A_I_SWORD];
+					players[i]->trap.itemModel.texture = gAssetTextures[A_I_SPIKES];
+					ActivateSword(&players[i]->sword, players[i]->spriteNumber[0], &players[i]->model.posRect);
 				}
 			}
 		}
@@ -609,6 +620,9 @@ void GetData(enum DataType dataType) {
 			players[i]->model.body = body;
 			players[i]->trap.itemModel.body = trap;
 			players[i]->model.texture = gAssetTextures[players[i]->model.asset];
+			players[i]->sword.itemModel.texture = gAssetTextures[A_I_SWORD];
+			players[i]->trap.itemModel.texture = gAssetTextures[A_I_SPIKES];
+			ActivateSword(&players[i]->sword, players[i]->spriteNumber[0], &players[i]->model.posRect);
 		}
 	}
 }
@@ -659,7 +673,9 @@ bool HandleInput(SDL_Event e, double velCoef ) {
 	if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
 		if (players[LocalPlayer]->hasSword && (Timer_GetTicks(&players[LocalPlayer]->sword.delay) >= 1000) && e.button.state == SDL_PRESSED) {
 			if (players[LocalPlayer]->canRun && players[LocalPlayer]->stamina > 40) {
+				players[LocalPlayer]->sword.isActive = true;
 				players[LocalPlayer]->sword.ItemFunc(&players[LocalPlayer]->sword, players[LocalPlayer]->spriteNumber[0], &players[LocalPlayer]->model.posRect);
+				Timer_Start(&players[LocalPlayer]->sword.delay);
 				Mix_PlayChannel(1, gSwordAttackChunk, 0);
 				players[LocalPlayer]->stamina -= 40;
 				if (players[LocalPlayer]->stamina < 10) players[LocalPlayer]->canRun = false;
