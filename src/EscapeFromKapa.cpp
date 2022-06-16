@@ -134,12 +134,12 @@ void DataProcessing(char* received, char* transmit) {
 		bool sending = true;
 		static int s_row = 0;
 		static int s_col = 0;
-		int row = s_row;
-		int col = s_col;
-		for (row; row < gMatrix.countRow; ++row) {
-			for (col; col < gMatrix.countCol; ++col) {
+		int row = 0;
+		int col = 0;
+		for (row = 0; row < gMatrix.countRow - s_row; ++row) {
+			for (col = 0; col < gMatrix.countCol - s_col; ++col) {
 				char numString[5] = { 0 };
-				sprintf(numString, "%d", (int)gMatrix.tileArray[row][col].tileType);
+				sprintf(numString, "%d", (int)gMatrix.tileArray[row+s_row][col+s_col].tileType);
 				strcat(transmit, numString);
 				int curNumLen = strlen(numString);
 				tShift += curNumLen;
