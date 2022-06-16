@@ -10,6 +10,7 @@
 
 #define MAX_PLAYER_COUNT 10
 #define MAX_LOGIN_SIZE 20
+#define MAX_LAB_STR_LEN 20000
 
 void DataAcceptence(char* received);
 void DataProcessing(char* received, char* transmit);
