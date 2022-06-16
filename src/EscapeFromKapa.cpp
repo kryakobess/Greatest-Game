@@ -311,11 +311,10 @@ void DataAcceptence(char* received)
 		char scale[5] = { 0 };
 		sscanf(received, "{%[A-Z ]}[%[A-Z ]][%[a-zA-Z0-9: ]]", task, answ, scale);
 		int tLen = strlen(task) + 2 + strlen(answ) + 2;
-		int labLen = strlen(gLabirintString);
-		if (labLen != 0) {
+		if (strlen(gLabirintString) != 0) {
 			tLen = strlen(task) + 2 + strlen(answ) + 2 + strlen(scale) + 2;
 		}
-		for (int i = labLen; i < MAX_LAB_STR_LEN; ++i) {
+		for (static int i = 0; i < MAX_LAB_STR_LEN; ++i) {
 			if (received[tLen + i] != '\0') {
 				gLabirintString[i] = received[tLen + i];
 			}
