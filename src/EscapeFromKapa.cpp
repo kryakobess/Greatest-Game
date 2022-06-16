@@ -146,11 +146,7 @@ void DataProcessing(char* received, char* transmit) {
 				tShift += curNumLen;
 				transmit[tShift] = ';';
 				tShift += 1;
-				if (tShift <= 1000) {
-					transmit[tShift] = '\0';
-				}
-				else {
-					tShift -= (curNumLen + 1);
+				if (tShift >= 1000) {
 					transmit[tShift] = '\0';
 					sending = false;
 					break;
