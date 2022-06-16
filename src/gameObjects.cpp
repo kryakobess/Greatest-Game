@@ -211,60 +211,7 @@ void HandleMovement(character* c[], const Uint8* move, int objCount, int players
 	}
 	c[LocalPlayer]->VelCoef = velCoef;
 	ReleaseSpikes(c, playersCount, velCoef, colArr, &c[LocalPlayer]->camera, LocalPlayer);
-
-	///////// LEFT + RIGHT
-	int xShift = 0;
-	int xPosShift = 0;
 	const Uint8* currentKeyStates = move;
-	if (currentKeyStates[SDL_SCANCODE_A]) {
-		if (c[LocalPlayer]->camera.x > 0 && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
-		else if (c[LocalPlayer]->model.posRect.x > 0) xPosShift -= VELOCITY;
-		if (velCoef != 0) {
-			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_LEFT; c[LocalPlayer]->spriteNumber[1]++;
-		}
-	}
-	if (currentKeyStates[SDL_SCANCODE_D]) {
-		if (c[LocalPlayer]->camera.x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
-		else if (c[LocalPlayer]->model.posRect.x < WIDTH_w - c[LocalPlayer]->model.posRect.w) xPosShift += VELOCITY;
-		if (velCoef != 0) {
-			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_RIGHT; c[LocalPlayer]->spriteNumber[1]++;
-		}
-	}
-	if (currentKeyStates[SDL_SCANCODE_E]) {
-		c[LocalPlayer]->trap.ItemFunc(&c[LocalPlayer]->trap, true, &c[LocalPlayer]->model.posRect);
-	}
-	if (currentKeyStates[SDL_SCANCODE_SPACE] && c[LocalPlayer]->stamina > 0 && c[LocalPlayer]->canRun) {
-		c[LocalPlayer]->VelCoef *= 2;
-		c[LocalPlayer]->stamina -= 1.5;
-		if (c[LocalPlayer]->stamina < 5) c[LocalPlayer]->canRun = false;
-	}
-	xShift *= c[LocalPlayer]->VelCoef;
-	xPosShift *= c[LocalPlayer]->VelCoef;
-	moveCharacter(c[LocalPlayer], xShift, 0, xPosShift, 0);
-	SavePlayersPosition(c, playersCount, 0, xShift, LocalPlayer);
-	for (int i = 0; i < matrix->countCol; i++)
-		for (int j = 0; j < matrix->countRow; j++)
-		{
-			if (matrix->tileArray[i][j].collider != NULL)
-			{
-				if (isCollided(c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
-				{
-					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera.x,
-					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera.y,
-					matrix->tileArray[i][j].tileBox.w,
-					matrix->tileArray[i][j].tileBox.h };
-					matrix->tileArray[i][j].collider->active = true;
-				}
-				else
-					matrix->tileArray[i][j].collider->active = false;
-			}
-		}
-	GetCollisionStates(colArr, &c[LocalPlayer]->camera);
-	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID])
-	{
-		moveCharacter(c[LocalPlayer], -xShift, 0, -xPosShift, 0);
-		SavePlayersPosition(c, playersCount, 0, -xShift, LocalPlayer);
-	}
 
 	/////// UP + DOWN
 	int yShift = 0;
@@ -282,6 +229,14 @@ void HandleMovement(character* c[], const Uint8* move, int objCount, int players
 		if (velCoef != 0) {
 			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_DOWN; c[LocalPlayer]->spriteNumber[1]++;
 		}
+	}
+	if (currentKeyStates[SDL_SCANCODE_E]) {
+		c[LocalPlayer]->trap.ItemFunc(&c[LocalPlayer]->trap, true, &c[LocalPlayer]->model.posRect);
+	}
+	if (currentKeyStates[SDL_SCANCODE_SPACE] && c[LocalPlayer]->stamina > 0 && c[LocalPlayer]->canRun) {
+		c[LocalPlayer]->VelCoef *= 2;
+		c[LocalPlayer]->stamina -= 1.5;
+		if (c[LocalPlayer]->stamina < 5) c[LocalPlayer]->canRun = false;
 	}
 	yShift *= c[LocalPlayer]->VelCoef;
 	yPosShift *= c[LocalPlayer]->VelCoef;
@@ -309,5 +264,50 @@ void HandleMovement(character* c[], const Uint8* move, int objCount, int players
 	{
 		moveCharacter(c[LocalPlayer], 0, -yShift, 0, -yPosShift);
 		SavePlayersPosition(c, playersCount, -yShift, 0, LocalPlayer);
+	}
+
+	///////// LEFT + RIGHT
+	int xShift = 0;
+	int xPosShift = 0;
+	if (currentKeyStates[SDL_SCANCODE_A]) {
+		if (c[LocalPlayer]->camera.x > 0 && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift -= VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.x > 0) xPosShift -= VELOCITY;
+		if (velCoef != 0) {
+			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_LEFT; c[LocalPlayer]->spriteNumber[1]++;
+		}
+	}
+	if (currentKeyStates[SDL_SCANCODE_D]) {
+		if (c[LocalPlayer]->camera.x < BG_WIDTH && abs(c[LocalPlayer]->model.posRect.x - WIDTH_w / 2) <= 10) xShift += VELOCITY;
+		else if (c[LocalPlayer]->model.posRect.x < WIDTH_w - c[LocalPlayer]->model.posRect.w) xPosShift += VELOCITY;
+		if (velCoef != 0) {
+			c[LocalPlayer]->spriteNumber[0] = KEY_PRESS_SURFACE_RIGHT; c[LocalPlayer]->spriteNumber[1]++;
+		}
+	}
+	xShift *= c[LocalPlayer]->VelCoef;
+	xPosShift *= c[LocalPlayer]->VelCoef;
+	moveCharacter(c[LocalPlayer], xShift, 0, xPosShift, 0);
+	SavePlayersPosition(c, playersCount, 0, xShift, LocalPlayer);
+	for (int i = 0; i < matrix->countCol; i++)
+		for (int j = 0; j < matrix->countRow; j++)
+		{
+			if (matrix->tileArray[i][j].collider != NULL)
+			{
+				if (isCollided(c[LocalPlayer]->camera, matrix->tileArray[i][j].tileBox))
+				{
+					((BoxCollider*)matrix->tileArray[i][j].collider->collider)->rect = { matrix->tileArray[i][j].tileBox.x - c[LocalPlayer]->camera.x,
+					matrix->tileArray[i][j].tileBox.y - c[LocalPlayer]->camera.y,
+					matrix->tileArray[i][j].tileBox.w,
+					matrix->tileArray[i][j].tileBox.h };
+					matrix->tileArray[i][j].collider->active = true;
+				}
+				else
+					matrix->tileArray[i][j].collider->active = false;
+			}
+		}
+	GetCollisionStates(colArr, &c[LocalPlayer]->camera);
+	if (colArr->outCollisionMatrix[PLAYER_COL_ID][ROCK_COL_ID] || colArr->outCollisionMatrix[PLAYER_COL_ID][WALL_COL_ID])
+	{
+		moveCharacter(c[LocalPlayer], -xShift, 0, -xPosShift, 0);
+		SavePlayersPosition(c, playersCount, 0, -xShift, LocalPlayer);
 	}
 }
