@@ -26,6 +26,10 @@ int LocalPlayer = 0;
 bool gRewrited = false;
 char gLabirintString[MAX_LAB_STR_LEN] = { 0 };
 
+int labirintStringShift = 0;
+bool okay;
+bool sendLabirintString;
+
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
 	SMP — Send My Position 
@@ -128,18 +132,43 @@ void DataProcessing(char* received, char* transmit) {
 	// Receive format: "{SMM}"
 	// Transmit format: "{SMM}[row;col] Cycle_Numbers"
 	if (!strcmp("SMM", task)) {
-		sprintf(transmit, "{SMM}[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+		//sprintf(transmit, "{SMM}[%d;%d]", gMatrix.countRow, gMatrix.countCol);
 		int tShift = strlen(transmit);
 		for (int row = 0; row < gMatrix.countRow; ++row) {
 			for (int col = 0; col < gMatrix.countCol; ++col) {
 				char numString[5] = { 0 };
 				sprintf(numString, "%d", (int)gMatrix.tileArray[row][col].tileType);
-				strcat(transmit, numString);
+				strcat(gLabirintString, numString);
 				tShift += strlen(numString);
-				transmit[tShift] = ';';
+				gLabirintString[tShift] = ';';
 				tShift += 1;
-				transmit[tShift] = '\0';
+				gLabirintString[tShift] = '\0';
 			}
+		}
+		if (strlen(gLabirintString) <= 1000)
+		{
+			sprintf(transmit, "{SMM}[OK][%d;%d]", gMatrix.countRow, gMatrix.countCol);
+			int shift = strlen(transmit);
+			int i;
+			for (i = 0; i < strlen(gLabirintString); i++)
+			{
+				transmit[i + shift] = gLabirintString[i];
+			}
+			transmit[i + shift] = '\0';
+			okay = true;
+		}
+		else
+		{
+			sprintf(transmit, "{SMM}[NOTOK][%d;%d]", gMatrix.countRow, gMatrix.countCol);
+			int shift = strlen(transmit);
+			int i;
+			for (i = labirintStringShift; i < 1000+labirintStringShift; i++)
+			{
+				transmit[i + shift] = gLabirintString[i];
+			}
+			labirintStringShift += 1000;
+			transmit[i + shift] = '\0';
+			okay = true;
 		}
 	}
 }
@@ -280,13 +309,24 @@ void DataAcceptence(char* received)
 		}
 	}
 	if (!strcmp(task, "SMM")) {
-		int tLen = strlen(task) + 2;
+		char status[10];
+		sscanf(received, "{%[A-Z ]}[%[A-Z ]]", task, status);
+		if (!strcmp(status, "OK"))
+		{
+			okay = true;
+		}
+		else
+		{
+			okay = false;
+		}
+		int tLen = strlen(task) + 2 + strlen(status) + 2;
 		for (int i = 0; i < MAX_LAB_STR_LEN; ++i) {
 			if (received[tLen + i] != '\0') {
 				gLabirintString[i] = received[tLen + i];
 			}
 			else break;
 		}
+		sendLabirintString = true;
 	}
 }
 
@@ -480,7 +520,9 @@ bool InitializeGameData(enum DataType dataType)
 			int status = pthread_create(&sendData, NULL, SendData, (void*)NULL);
 			pthread_detach(sendData);
 
-			while(strlen(gLabirintString)==0){}
+			sendLabirintString = false;
+			while(!sendLabirintString){}
+
 			sscanf(gLabirintString, "[%d;%d]", &gMatrix.countRow, &gMatrix.countCol);
 			size_t** servMatr = (size_t**)calloc(gMatrix.countRow, sizeof(size_t*));
 			for (int i = 0; i < gMatrix.countRow; i++)
