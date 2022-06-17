@@ -27,6 +27,7 @@ bool gRewrited = false;
 bool hasMap = false;
 bool canGetMapData = true;
 char gLabirintString[MAX_LAB_STR_LEN] = { 0 };
+int labStringShift = 0;
 
 void DataProcessing(char* received, char* transmit) {
 	/*SPPN — Send Player Position by Name
@@ -128,44 +129,52 @@ void DataProcessing(char* received, char* transmit) {
 		}
 	}
 	// Receive format: "{SMM}"
-	// Transmit format: if labirint haven't sent fully "{SMM}[NO][row;col] Cycle_Numbers", else "{SMM}[OK][row;col] Cycle_Numbers"
+	// Transmit format: if labirint haven't sent fully "{SMM}[NO] gLabString", else "{SMM}[OK] gLabString"
 	if (!strcmp("SMM", task)) {
-		sprintf(transmit, "{SMM}[NO][%d;%d]", gMatrix.countRow, gMatrix.countCol);
-		int tShift = strlen(transmit);
-		bool sending = true;
-		static int s_row = 0;
-		static int s_col = 0;
-		int row = 0;
-		int col = 0;
-		for (row = 0; row < gMatrix.countRow - s_row; ++row) {
-			for (col = 0; col < gMatrix.countCol - s_col; ++col) {
-				char numString[5] = { 0 };
-				printf("%d;%d\n", row + s_row, col + s_col);
-				sprintf(numString, "%d", (int)gMatrix.tileArray[row+s_row][col+s_col].tileType);
-				printf("%s;", numString);
-				strcat(transmit, numString);
-				int curNumLen = strlen(numString);
-				tShift += curNumLen;
-				transmit[tShift] = ';';
-				tShift += 1;
-				transmit[tShift] = '\0';
-				if (tShift >= 1000) {
-					if (col < gMatrix.countCol - s_col) col++;
-					else  if (col >= gMatrix.countCol && row < gMatrix.countRow - s_row) row++;
-					sending = false;
-					break;
+		sprintf(transmit, "{SMM}[NO]");
+		int shiftTransmit = strlen(transmit);
+
+		if (!hasMap)
+		{
+			sprintf(gLabirintString, "[%d;%d]", gMatrix.countRow, gMatrix.countCol);
+			for (int i = 0; i < gMatrix.countRow; i++)
+			{
+				for (int j = 0; j < gMatrix.countCol; j++)
+				{
+					char num[10] = { 0 };
+					sprintf(num, "%d;", (int)gMatrix.tileArray[i][j].tileType);
+					strcat(gLabirintString, num);
 				}
 			}
-			if (sending == false) {
+			hasMap = true;
+		}
+		//printf("LabStr = %s\n", gLabirintString);
+
+		bool okay = false;
+		int i;
+		for (i = 0; i < 1000; i++)
+		{
+			if (gLabirintString[i + labStringShift] != '\0')
+			{
+				transmit[shiftTransmit + i] = gLabirintString[i + labStringShift];
+			}
+			else
+			{
+				okay = true;
 				break;
 			}
 		}
-		s_row += row;
-		s_col += col;
-		if (s_row * s_col == gMatrix.countCol * gMatrix.countRow) {
+		transmit[shiftTransmit + i] = '\0';
+		labStringShift += i;
+
+
+		if (okay)
+		{
 			transmit[6] = 'O';
 			transmit[7] = 'K';
 		}
+
+		printf("[%d]{%s}\n", labStringShift, transmit);
 	}
 }
 
@@ -313,26 +322,17 @@ void DataAcceptence(char* received)
 	}
 	if (!strcmp(task, "SMM")) {
 		char answ[10] = { 0 };
-		char scale[10] = { 0 };
-		sscanf(received, "{%[A-Z ]}[%[A-Z ]][%[a-zA-Z0-9; ]]", task, answ, scale);
-		int tLen = strlen(task) + 2 + strlen(answ) + 2;
-		if (strlen(gLabirintString) != 0) {
-			tLen = strlen(task) + 2 + strlen(answ) + 2 + strlen(scale) + 2;
+		sscanf(received, "{%[A-Z ]}[%[A-Z ]]", task, answ);
+		int shiftReceived = 1 + strlen(task) + 1 + 1 + strlen(answ) + 1;
+
+		int i;
+		for (i = 0; received[shiftReceived + i] != '\0'; i++)
+		{
+			gLabirintString[i + labStringShift] = received[shiftReceived + i];
 		}
-		//printf("rec = %d\n", strlen(received));
-		int iii = 0;
-		for (static int i = 0; i < MAX_LAB_STR_LEN; ++i) {
-			if (tLen + iii < strlen(received))
-			{
-				gLabirintString[i] = received[tLen + iii];
-				printf("%c", gLabirintString[i]);
-			} else break;
-			iii++;
-		}
-		if (!strcmp("OK", answ)) {
-			hasMap = true;
-		}
-		canGetMapData = true;
+		printf("{%s}\n", gLabirintString);
+		labStringShift += i;
+
 	}
 }
 
