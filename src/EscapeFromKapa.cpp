@@ -142,6 +142,7 @@ void DataProcessing(char* received, char* transmit) {
 				char numString[5] = { 0 };
 				printf("%d;%d\n", row + s_row, col + s_col);
 				sprintf(numString, "%d", (int)gMatrix.tileArray[row+s_row][col+s_col].tileType);
+				printf("%s;", numString);
 				strcat(transmit, numString);
 				int curNumLen = strlen(numString);
 				tShift += curNumLen;
@@ -168,6 +169,7 @@ void DataProcessing(char* received, char* transmit) {
 
 void DataAcceptence(char* received)
 {
+	//printf("%s\n", received);
 	char task[5] = { 0 };
 	sscanf(received, "{%[A-Z ]}", task);
 	if (!strcmp("SPPN", task)) {
@@ -308,20 +310,20 @@ void DataAcceptence(char* received)
 		}
 	}
 	if (!strcmp(task, "SMM")) {
-		char answ[5] = { 0 };
-		char scale[5] = { 0 };
-		sscanf(received, "{%[A-Z ]}[%[A-Z ]][%[a-zA-Z0-9: ]]", task, answ, scale);
+		char answ[10] = { 0 };
+		char scale[10] = { 0 };
+		sscanf(received, "{%[A-Z ]}[%[A-Z ]][%[a-zA-Z0-9; ]]", task, answ, scale);
 		int tLen = strlen(task) + 2 + strlen(answ) + 2;
 		if (strlen(gLabirintString) != 0) {
 			tLen = strlen(task) + 2 + strlen(answ) + 2 + strlen(scale) + 2;
 		}
-		printf("rec = %d\n", strlen(received));
+		//printf("rec = %d\n", strlen(received));
 		int iii = 0;
 		for (static int i = 0; i < MAX_LAB_STR_LEN; ++i) {
 			if (tLen + iii < strlen(received))
 			{
 				gLabirintString[i] = received[tLen + iii];
-				printf("%d\n", i);
+				printf("%c", gLabirintString[i]);
 			} else break;
 			iii++;
 		}
