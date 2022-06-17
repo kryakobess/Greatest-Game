@@ -333,6 +333,12 @@ void DataAcceptence(char* received)
 		printf("{%s}\n", gLabirintString);
 		labStringShift += i;
 
+		if (!strcmp(answ, "OK"))
+		{
+			hasMap = true;
+		}
+
+		canGetMapData = true;
 	}
 }
 
