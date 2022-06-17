@@ -150,6 +150,8 @@ void DataProcessing(char* received, char* transmit) {
 				tShift += 1;
 				transmit[tShift] = '\0';
 				if (tShift >= 1000) {
+					if (col < gMatrix.countCol - s_col) col++;
+					else  if (col >= gMatrix.countCol && row < gMatrix.countRow - s_row) row++;
 					sending = false;
 					break;
 				}
