@@ -505,6 +505,7 @@ bool InitializeGameData(enum DataType dataType)
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_TRAP_COL_ID] = true;
 		gCollidersArray->collisionMatrix[PLAYER_COL_ID][ONLINE_PLAYER_COL_ID] = true;
 
+
 		players[LocalPlayer] = (character*)malloc(sizeof(character));
 		srand(time(NULL));
 		players[LocalPlayer]->model.asset = (AssetStatus)(rand() % (ASSETS_TOTAL - 2));
