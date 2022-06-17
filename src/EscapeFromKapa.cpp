@@ -142,7 +142,7 @@ void DataProcessing(char* received, char* transmit) {
 				for (int j = 0; j < gMatrix.countCol; j++)
 				{
 					char num[10] = { 0 };
-					sprintf(num, "%d;", (int)gMatrix.tileArray[i][j].tileType);
+					sprintf(num, "%d;", (int)gMatrix.tileArray[j][i].tileType);
 					strcat(gLabirintString, num);
 				}
 			}

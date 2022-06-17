@@ -176,9 +176,9 @@ void ColoringLabirint(size_t** matr, Matrix* matrix)
 bool InitCreateLabirint(Matrix* matrix, CollidersArray* colArr)
 {
 	srand((unsigned int)time(NULL));
-	int r = rand() % 100;
+	int r = rand() % 45;
 	matrix->countCol = r*2+51;
-	r = rand() % 100;
+	r = rand() % 45;
 	matrix->countRow = r*2+51;
 
 	printf("Labirint with Col:%u and Row:%u\n", matrix->countCol, matrix->countRow);
