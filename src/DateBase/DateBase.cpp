@@ -39,6 +39,7 @@ int AddStructureInDateBase(const char* name, void* structure, const int sizeStru
 		return -1;
 	strcpy(dateBase->nameStructure[dateBase->countStructure], name);
 	SaveStructureToString(structure, sizeStructure, &(dateBase->stringStructure[dateBase->countStructure]));
+	dateBase->sizesStructure[dateBase->countStructure] = sizeStructure;
 	dateBase->countStructure++;
 	return 0;
 }
@@ -49,6 +50,7 @@ int RewriteStructureInDateBase(const char* name, void* structure, const int size
 		return -1;
 	free(dateBase->stringStructure[id]);
 	SaveStructureToString(structure, sizeStructure, &(dateBase->stringStructure[id]));
+	dateBase->sizesStructure[id] = sizeStructure;
 	return 0;
 }
 int GetStructureFromDateBase(const char* name, void** structure, const int sizeStructure, DateBase* dateBase)
@@ -67,4 +69,5 @@ int ClearDateBase(DateBase* dateBase)
 		free(dateBase->stringStructure[i]);
 	}
 	dateBase->countStructure = 0;
+	return 1;
 }

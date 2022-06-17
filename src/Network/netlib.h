@@ -3,8 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define HAVE_STRUCT_TIMESPEC
 #define MAXSIZECLENTS 50
-
-int Global_clientCount;
+#define MAX_DATA_SIZE 1024
 
 #include <pthread.h>
 #pragma comment(lib, "ws2_32.lib")
@@ -43,7 +42,7 @@ typedef struct taskID {
 typedef struct myServer {
 	SOCKET serverSock;
 	//taskID clients[MAXSIZECLENTS];
-	int lastClientNumb;
+	int ClientCount;
 	SOCKADDR_IN serverAddr;
 	pthread_t serverThread;
 	//обработка полученных и отправл€ющихс€ данных
@@ -54,6 +53,7 @@ typedef struct myClient {
 	SOCKADDR_IN serverAddr;
 	pthread_t thread;
 	char sentData[1024];
+	bool ApplySending;
 	char recievedData[1024];
 	void (*DataAcceptance)(char*);
 }myClient;

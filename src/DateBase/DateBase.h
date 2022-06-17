@@ -12,12 +12,18 @@ enum DataType
 	HOST,
 	CLIENT
 };
+
 typedef struct DateBase
 {
 	char* nameStructure[MAX_STRUCTURE_COUNT];
 	char* stringStructure[MAX_STRUCTURE_COUNT];
+	int sizesStructure[MAX_STRUCTURE_COUNT];
 	int countStructure;
 }DateBase;
+
+int SaveStructureToString(void* structure, const int sizeStructure, char** str);
+int LoadStructureFromString(void** structure, const int sizeStructure, char* str);
+int getIDStructure(const char* name, DateBase* dateBase);
 
 //Инициализация БД
 void InitDateBase(DateBase* dateBase);

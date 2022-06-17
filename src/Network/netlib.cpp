@@ -2,6 +2,7 @@
 
 pthread_mutex_t clientLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t servLock = PTHREAD_MUTEX_INITIALIZER;
+int Global_clientCount;
 
 int IncludeWSADATA()
 {
@@ -37,7 +38,7 @@ void* ListenClient(void* arg) {
 			data.transmit[1] = 'K';
 			data.transmit[2] = '\0';
 		}
-		ret = send(clientTask->socket, data.transmit, strlen(data.transmit) + 1, 0);
+		ret = send(clientTask->socket, data.transmit, MAX_DATA_SIZE, 0);
 		if (ret == SOCKET_ERROR)
 		{
 			return (void*)ERROR_SENDING_DATA;
@@ -80,6 +81,7 @@ void* ServerThread(void* arg) {
 			Global_clientCount++;
 			pthread_mutex_unlock(&servLock);
 		}
+		if (serverCfg->ClientCount != Global_clientCount) serverCfg->ClientCount = Global_clientCount;
 		pthread_t client;
 		pthread_create(&client, NULL, ListenClient, (void*)clientTask);
 		pthread_detach(client);
@@ -87,6 +89,7 @@ void* ServerThread(void* arg) {
 	closesocket(serverCfg->serverSock);
 	return 0;
 }
+
 int StartServer(myServer* server, const char* ip, const int port) {
 	Global_clientCount = 0;
 	SOCKET srvS = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
@@ -114,15 +117,15 @@ void* SendToServer(void* arg) {
 	}
 	while(true)
 	{
-		if (strlen(client->sentData) != 0)
+		if (client->ApplySending && strlen(client->sentData) != 0)
 		{
-			int ret = send(client->socket, client->sentData, strlen(client->sentData), 0);
+			int ret = send(client->socket, client->sentData, MAX_DATA_SIZE, 0);
 			client->sentData[0] = '\0';
 			if (ret == SOCKET_ERROR)
 			{
 				printf("Can't send message\n");
-				closesocket(client);
-				return;
+				closesocket(client->socket);
+				return (void*)CONNECTION_CLOSED;
 			}
 			ret = recv(client->socket, client->recievedData, sizeof(client->recievedData), 0);
 			if (ret == 0 || ret == WSAECONNRESET)
@@ -146,6 +149,7 @@ int ConnectToServer(myClient* client, const char* ip, const int port) {
 	client->serverAddr.sin_family = AF_INET;
 	client->serverAddr.sin_port = htons(port);
 	client->serverAddr.sin_addr.S_un.S_addr = inet_addr(ip);
+	client->ApplySending = false;
 	pthread_t clientThread;
 	pthread_create(&clientThread, NULL, SendToServer, (void*)client);
 	pthread_detach(clientThread);
