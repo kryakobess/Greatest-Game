@@ -134,7 +134,7 @@ void DataProcessing(char* received, char* transmit) {
 		sprintf(transmit, "{SMM}[NO]");
 		int shiftTransmit = strlen(transmit);
 
-		if (!hasMap)
+		if (!hasMap && (strlen(gLabirintString)==0))
 		{
 			sprintf(gLabirintString, "[%d;%d]", gMatrix.countRow, gMatrix.countCol);
 			for (int i = 0; i < gMatrix.countRow; i++)
@@ -172,6 +172,9 @@ void DataProcessing(char* received, char* transmit) {
 		{
 			transmit[6] = 'O';
 			transmit[7] = 'K';
+			hasMap = false;
+			labStringShift = 0;
+			gLabirintString[0] = '\0';
 		}
 
 		printf("[%d]{%s}\n", labStringShift, transmit);
@@ -466,11 +469,11 @@ bool loadMedia()
 		success = false;
 	}
 	
-	/*gMusic = Mix_LoadMUS("soundtrack1.mp3");
+	gMusic = Mix_LoadMUS("soundtrack1.mp3");
 	if (gMusic == NULL) {
 		printf("Soundtrack error!\n");
 		success = false;
-	}*/
+	}
 	gSwordAttackChunk = Mix_LoadWAV("sword_attack.wav");
 	if (gSwordAttackChunk == NULL) {
 		printf("attack chunk error!\n");
